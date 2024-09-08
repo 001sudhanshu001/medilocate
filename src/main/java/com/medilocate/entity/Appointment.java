@@ -28,9 +28,12 @@ public class Appointment {
     @Future(message = "Appointment time must be in the future")
     @Column(nullable = false)
     private LocalDateTime startTime;
+
+    @Future(message = "Appointment End time must be in the future")
+    @Column(nullable = true)
     private LocalDateTime endTime;
 
-    @Column(length = 1000, nullable = false)
+    @Column(length = 1000, nullable = true)
     private String description;
 
     @Enumerated(EnumType.STRING)
