@@ -5,15 +5,18 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+@Deprecated
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class TimeSlot {
-    @JsonProperty("start")
-    private LocalDateTime start;
-
-    @JsonProperty("end")
-    private LocalDateTime end;
+//    @JsonProperty("start")
+//    private LocalDateTime start;
+//
+//    @JsonProperty("end")
+//    private LocalDateTime end;
+    private String start;
+    private String end;
 
 }

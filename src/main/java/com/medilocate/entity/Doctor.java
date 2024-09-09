@@ -5,6 +5,7 @@ import io.hypersistence.utils.hibernate.type.json.JsonType;
 import com.medilocate.entity.enums.DoctorStatus;
 import com.medilocate.entity.enums.Specialty;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Type;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,13 +23,16 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Doctor {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // TODO : Add a Hospital Field and make changes
     @Column(nullable = false, length = 50)
     private String name;
+
+    @Column(nullable = true, length = 50) // TODO : Check true to false after testing
+    private String hospital;
 
     @Enumerated(EnumType.STRING)
     private Specialty specialty;
@@ -36,23 +41,48 @@ public class Doctor {
     @Column(columnDefinition = "json")
     private Map<String, String> availability = new LinkedHashMap<>();
 
-    private double latitude;
-    private double longitude;
+    private Double latitude;
+    private Double longitude;
 
     @NotBlank(message = "City cannot be empty")
     private String city;
 
-    @Enumerated(EnumType.STRING) // For current status, like Occupied, Available
+    @Enumerated(EnumType.STRING)
     private DoctorStatus status;
 
     @JsonIgnore // TODO : use DTO
     @OneToMany(mappedBy = "doctor")
-    private List<Appointment> appointments;
+    private List<Appointment> appointments = new ArrayList<>();
 
-    // PostGIS
-//    @Column(columnDefinition = "GEOGRAPHY(Point, 4326)") // For Better search
-//    private Point location;
+//    @OneToMany(mappedBy = "doctor")
+//    private List<Slot> slots = new ArrayList<>();
+
+    private Integer slotSize; // In Minutes
 
     @Transient
     private double distance;
+
+    @Email
+    @Column(unique = true)
+    private String email;
+
+//    private String password;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Doctor doctor = (Doctor) o;
+
+        if (!id.equals(doctor.id)) return false;
+        return name.equals(doctor.name);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id.hashCode();
+        result = 31 * result + name.hashCode();
+        return result;
+    }
 }

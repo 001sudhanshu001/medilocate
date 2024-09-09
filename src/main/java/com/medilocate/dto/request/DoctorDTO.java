@@ -4,9 +4,7 @@ import com.medilocate.entity.enums.DoctorStatus;
 import com.medilocate.entity.enums.Specialty;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.util.LinkedHashMap;
@@ -22,17 +20,28 @@ public class DoctorDTO {
     @Max(value = 50, message = "Name Must be between 1 to 50 Characters")
     private String name;
 
+    @NotBlank(message = "Hospital/Clinic name can't be Blank")
+    @Max(value = 50, message = "Hospital/Clinic name Must be between 1 to 50 Characters")
+    private String hospital;
+
     @Enumerated(EnumType.STRING)
     private Specialty specialty;
 
     private Map<String, String> availability = new LinkedHashMap<>();
 
-    private double latitude;
-    private double longitude;
+    @NotNull(message = "Latitude cannot be null")
+    @DecimalMin(value = "-90.0", message = "Latitude must be between -90.0 and 90.0")
+    @DecimalMax(value = "90.0", message = "Latitude must be between -90.0 and 90.0")
+    private Double latitude;
+
+    @NotNull(message = "Longitude cannot be null")
+    @DecimalMin(value = "-180.0", message = "Longitude must be between -180.0 and 180.0")
+    @DecimalMax(value = "180.0", message = "Longitude must be between -180.0 and 180.0")
+    private Double longitude;
 
     @NotBlank(message = "City cannot be empty")
     private String city;
 
-    @Enumerated(EnumType.STRING) // For current status, like Occupied, Available
+    @Enumerated(EnumType.STRING)
     private DoctorStatus status;
 }

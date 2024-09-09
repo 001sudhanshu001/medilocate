@@ -22,6 +22,7 @@ public class DoctorService {
     public Doctor saveDoctor(DoctorDTO doctorDTO) {
         Doctor doctor = new Doctor();
         doctor.setName(doctorDTO.getName());
+        doctor.setHospital(doctorDTO.getHospital());
         doctor.setCity(doctorDTO.getCity());
         doctor.setSpecialty(doctorDTO.getSpecialty());
         doctor.setLatitude(doctorDTO.getLatitude());
@@ -36,6 +37,7 @@ public class DoctorService {
         Doctor existingDoctor = doctorRepository.findById(id).orElseThrow(() -> new RuntimeException("No Doctor Found with the given Id"));
 
         existingDoctor.setName(updatedDoctor.getName());
+        existingDoctor.setHospital(updatedDoctor.getHospital());
         existingDoctor.setSpecialty(updatedDoctor.getSpecialty());
         existingDoctor.setCity(updatedDoctor.getCity());
         existingDoctor.setLatitude(updatedDoctor.getLatitude());

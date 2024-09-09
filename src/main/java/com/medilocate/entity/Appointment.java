@@ -15,23 +15,30 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Appointment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
+    @JoinColumn(name = "doctor_id", nullable = false)
     private Doctor doctor;
 
+    @OneToOne // Doctor's Slot
+    @JoinColumn(name = "slot_id", nullable = false)
+    private Slot slot;
+
     @ManyToOne
-    private Patient patient;
+    @JoinColumn(name = "booked_by_user_having_id", nullable = false)
+    private User bookedBY;
 
-    @Future(message = "Appointment time must be in the future")
-    @Column(nullable = false)
-    private LocalDateTime startTime;
-
-    @Future(message = "Appointment End time must be in the future")
-    @Column(nullable = true)
-    private LocalDateTime endTime;
+//    @Future(message = "Appointment time must be in the future")
+//    @Column(nullable = false)
+//    private LocalDateTime startTime;
+//
+//    @Future(message = "Appointment End time must be in the future")
+//    @Column(nullable = true)
+//    private LocalDateTime endTime;
 
     @Column(length = 1000, nullable = true)
     private String description;
