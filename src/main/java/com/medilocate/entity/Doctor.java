@@ -22,6 +22,11 @@ import java.util.Map;
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "doctor",
+        indexes = {
+                @Index(name = "idx_email", columnList = "email", unique = true)
+        }
+)
 public class Doctor {
 
     @Id
@@ -31,7 +36,7 @@ public class Doctor {
     @Column(nullable = false, length = 50)
     private String name;
 
-    @Column(nullable = true, length = 50) // TODO : Check true to false after testing
+    @Column(nullable = false, length = 50)
     private String hospital;
 
     @Enumerated(EnumType.STRING)
@@ -84,5 +89,12 @@ public class Doctor {
         int result = id.hashCode();
         result = 31 * result + name.hashCode();
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Doctor{" +
+                "id=" + id +
+                '}';
     }
 }

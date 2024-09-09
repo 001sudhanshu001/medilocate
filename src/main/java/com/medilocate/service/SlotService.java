@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -61,6 +62,10 @@ public class SlotService {
         }
 
         return slotRepository.save(slot);
+    }
+
+    public List<Slot> getSlotsByDoctorAndDate(Long doctorId, LocalDate date) {
+        return slotRepository.findByDoctorIdAndSlotDate(doctorId, date);
     }
 
     @Transactional

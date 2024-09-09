@@ -2,5 +2,6 @@ package com.medilocate.entity.enums;
 
 public enum SlotStatus {
     AVAILABLE,
-    BOOKED
+    BOOKED,
+    USED
 }

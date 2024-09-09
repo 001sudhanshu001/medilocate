@@ -7,20 +7,20 @@ import com.medilocate.entity.Slot;
 import com.medilocate.entity.User;
 import com.medilocate.entity.enums.AppointmentStatus;
 import com.medilocate.entity.enums.SlotStatus;
+import com.medilocate.exception.EntityNotFoundException;
+import com.medilocate.exception.UserNotFoundException;
 import com.medilocate.repository.AppointmentRepository;
 import com.medilocate.repository.DoctorRepository;
 import com.medilocate.repository.SlotRepository;
 import com.medilocate.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -74,6 +74,44 @@ public class AppointmentService {
         appointmentRepository.save(appointment);
     }
 
-    // TODO : Appointment Cancellation
+    public Page<Appointment> getAppointmentsByUser(String userEmail, int page) {
+        Pageable pageable = PageRequest.of(page - 1, 10);
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UserNotFoundException("User Not Found !!!"));
+
+        return appointmentRepository.findByBookedBYOrderByIdDesc(user, pageable);
+    }
+
+    // TODO : Appointment Cancellation, Appointment Booking and Cancellation Time
+
+    @Transactional
+    public void cancelAppointment(Long appointmentId, String userEmail) {
+        Appointment appointment = appointmentRepository.findByIdAndUserEmail(appointmentId, userEmail)
+                .orElseThrow(() -> new EntityNotFoundException("Appointment not found"));
+
+        if (appointment.getSlot().getStartTime().isBefore(LocalDateTime.now())) {
+            throw new IllegalStateException("Cannot cancel an appointment that has already occurred");
+        }
+
+        // Update Slot as AVAILABLE
+        slotRepository.updateSlotStatus(SlotStatus.AVAILABLE, appointment.getSlot().getId());
+
+        appointmentRepository.updateAppointmentStatus(appointmentId, AppointmentStatus.CANCELLED);
+    }
+
+    @Transactional
+    public void completeAppointment(Long appointmentId, String doctorEmail) {
+        Appointment appointment = appointmentRepository.findByIdAndDoctorEmail(appointmentId, doctorEmail)
+                .orElseThrow(() -> new EntityNotFoundException("Appointment not found"));
+
+        if (appointment.getSlot().getStartTime().isAfter(LocalDateTime.now())) {
+            throw new IllegalStateException("Cannot complete an appointment that is in the future");
+        }
+
+        // Mark the appointment as completed
+        appointmentRepository.updateAppointmentStatus(appointmentId, AppointmentStatus.COMPLETED);
+
+        slotRepository.updateSlotStatus(SlotStatus.USED, appointment.getSlot().getId());
+    }
 
 }

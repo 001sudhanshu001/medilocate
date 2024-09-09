@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -35,4 +36,8 @@ public interface SlotRepository extends JpaRepository<Slot, Long> {
 
     @Query("SELECT s FROM Slot s WHERE s.id = :slotId AND s.doctor.id = :doctorId") // AND s.status = :status
     Optional<Slot> findByIdAndDoctorId(Long doctorId, Long slotId);
+
+    @Query("SELECT s FROM Slot s WHERE s.doctor.id = :doctorId " +
+            "AND FUNCTION('DATE', s.startTime) = :date") //AND s.isDeleted = false
+    List<Slot> findByDoctorIdAndSlotDate(Long doctorId, LocalDate date);
 }
