@@ -65,6 +65,7 @@ public class AppointmentController {
         }
     }
 
+    // DOCTOR ONLY
     @PostMapping("/complete") // Will be Updated by the Doctor
     public ResponseEntity<String> completeAppointment(@RequestParam Long appointmentId) {
 

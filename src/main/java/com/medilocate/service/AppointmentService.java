@@ -7,8 +7,8 @@ import com.medilocate.entity.Slot;
 import com.medilocate.entity.User;
 import com.medilocate.entity.enums.AppointmentStatus;
 import com.medilocate.entity.enums.SlotStatus;
-import com.medilocate.exception.EntityNotFoundException;
-import com.medilocate.exception.UserNotFoundException;
+import com.medilocate.exception.custom.EntityNotFoundException;
+import com.medilocate.exception.custom.UserNotFoundException;
 import com.medilocate.repository.AppointmentRepository;
 import com.medilocate.repository.DoctorRepository;
 import com.medilocate.repository.SlotRepository;
@@ -33,7 +33,6 @@ public class AppointmentService {
     private final UserRepository userRepository;
     private final SlotRepository slotRepository;
 
-    // TODO : Use Proper Exceptions, Like SlotNotAvailableException, DoctorNotFound etc...
     @Transactional
     public void bookAppointment(AppointmentRequest request, String username) {
         Doctor doctor = doctorRepository.findById(request.getDoctorId())

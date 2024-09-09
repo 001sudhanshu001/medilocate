@@ -2,7 +2,6 @@ package com.medilocate.entity;
 
 import com.medilocate.entity.enums.AppointmentStatus;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Future;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

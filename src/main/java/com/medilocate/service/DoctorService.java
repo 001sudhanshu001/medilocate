@@ -19,6 +19,21 @@ public class DoctorService {
 
     private final DoctorRepository doctorRepository;
 
+    public Doctor findDoctorById(Long id, Double userLatitude, Double userLongitude) {
+        Doctor doctor = doctorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("No Doctor Found with the given Id"));
+
+        if (userLatitude != null && userLongitude != null) {
+            double distance = DistanceUtil
+                    .calculateDistance(userLatitude, userLongitude, doctor.getLatitude(), doctor.getLongitude());
+            doctor.setDistance(distance);
+        } else {
+            doctor.setDistance(null);
+        }
+
+        return doctor;
+    }
+
     public Doctor saveDoctor(DoctorDTO doctorDTO) {
         Doctor doctor = new Doctor();
         doctor.setName(doctorDTO.getName());

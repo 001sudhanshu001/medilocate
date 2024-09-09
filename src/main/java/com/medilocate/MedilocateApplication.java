@@ -37,16 +37,16 @@ public class MedilocateApplication implements CommandLineRunner {
 				+ "\"Friday\":\"9:00-17:00\","
 				+ "\"Saturday\":\"10:00-14:00\""
 				+ "}";
-		Map<String, String> availabilityMap = objectMapper.readValue(availability, Map.class);
+//		Map<String, String> availabilityMap = objectMapper.readValue(availability, Map.class);
 
-		Doctor doctor1 = new Doctor();
-		doctor1.setName("Park");
-		doctor1.setSpecialty(Specialty.CARDIOLOGIST);
-		doctor1.setAvailability(availabilityMap);
-		doctor1.setLatitude(29.333914);
-		doctor1.setLongitude(76.985632);
-		doctor1.setCity("Panipat");
-		doctor1.setStatus(DoctorStatus.AVAILABLE);
+//		Doctor doctor1 = new Doctor();
+//		doctor1.setName("Park");
+//		doctor1.setSpecialty(Specialty.CARDIOLOGIST);
+//		doctor1.setAvailability(availabilityMap);
+//		doctor1.setLatitude(29.333914);
+//		doctor1.setLongitude(76.985632);
+//		doctor1.setCity("Panipat");
+//		doctor1.setStatus(DoctorStatus.AVAILABLE);
 
 	//	doctorService.saveDoctor(doctor1);
 //

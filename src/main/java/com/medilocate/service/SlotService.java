@@ -4,7 +4,7 @@ import com.medilocate.dto.request.SlotRequest;
 import com.medilocate.entity.Doctor;
 import com.medilocate.entity.Slot;
 import com.medilocate.entity.enums.SlotStatus;
-import com.medilocate.exception.EntityNotFoundException;
+import com.medilocate.exception.custom.EntityNotFoundException;
 import com.medilocate.repository.DoctorRepository;
 import com.medilocate.repository.SlotRepository;
 import lombok.RequiredArgsConstructor;

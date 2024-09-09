@@ -51,6 +51,7 @@ public class Doctor {
     private Map<String, String> availability = new LinkedHashMap<>();
 
     private Double latitude;
+
     private Double longitude;
 
     @NotBlank(message = "City cannot be empty")
@@ -59,18 +60,14 @@ public class Doctor {
     @Enumerated(EnumType.STRING)
     private DoctorStatus status;
 
-    @JsonIgnore // TODO : use DTO
+    @JsonIgnore
     @OneToMany(mappedBy = "doctor")
     private List<Appointment> appointments = new ArrayList<>();
 
 //    @OneToMany(mappedBy = "doctor")
 //    private List<Slot> slots = new ArrayList<>();
 
-    @JsonIgnore // TODO :: Will use DTO
     private Integer slotSize; // In Minutes
-
-    @Transient
-    private double distance;
 
     @Email
     @Column(unique = true)
@@ -78,6 +75,9 @@ public class Doctor {
 
     @CreatedDate
     private LocalDateTime createdAt;
+
+    @Transient
+    private Double distance;
 
 //    private String password;
 

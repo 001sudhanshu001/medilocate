@@ -1,9 +1,9 @@
 package com.medilocate.controller;
 
-import com.medilocate.dto.response.SlotResponse;
 import com.medilocate.dto.request.SlotRequest;
+import com.medilocate.dto.response.SlotResponse;
 import com.medilocate.entity.Slot;
-import com.medilocate.exception.EntityNotFoundException;
+import com.medilocate.exception.custom.EntityNotFoundException;
 import com.medilocate.service.SlotService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ public class SlotController {
     private final SlotService slotService;
 
     // TODO
-   // @PostMapping("/resetSlots")
+    // @PostMapping("/resetSlots")
     public ResponseEntity<String> resetSlots() {
         String usernmae = "sarya@gmail.com"; // Fetch username from JWT
 //        slotService.resetSlots(usernmae);
@@ -44,9 +44,9 @@ public class SlotController {
         }
 
         String doctorEmail = "sarya@gmail.com"; // FROM JWT
-        try{
+        try {
             slotService.createSlot(slotRequest, doctorEmail);
-        }catch (IllegalStateException e) {
+        } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
 
@@ -66,9 +66,9 @@ public class SlotController {
         }
 
         String doctorEmail = "sarya@gmail.com"; // FROM JWT
-        try{
+        try {
             slotService.updateSlot(slotRequest, id, doctorEmail);
-        }catch (IllegalStateException e) {
+        } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
 
@@ -82,14 +82,14 @@ public class SlotController {
 
         LocalDate localDate;
         try {
-            localDate = LocalDate.parse(date); // Assuming date is passed in YYYY-MM-DD format
+            localDate = LocalDate.parse(date); // date is passed in YYYY-MM-DD format
         } catch (DateTimeParseException e) {
             return ResponseEntity.badRequest().body("Invalid date format. Use YYYY-MM-DD");
         }
 
         List<Slot> slotsByDoctorAndDate = slotService.getSlotsByDoctorAndDate(doctorId, localDate);
 
-        if(slotsByDoctorAndDate.isEmpty()) {
+        if (slotsByDoctorAndDate.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
 
