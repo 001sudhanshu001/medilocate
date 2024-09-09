@@ -96,7 +96,7 @@ public class AppointmentService {
         // Update Slot as AVAILABLE
         slotRepository.updateSlotStatus(SlotStatus.AVAILABLE, appointment.getSlot().getId());
 
-        appointmentRepository.updateAppointmentStatus(appointmentId, AppointmentStatus.CANCELLED);
+        appointmentRepository.updateAppointmentStatusToCancel(appointmentId, AppointmentStatus.CANCELLED, LocalDateTime.now());
     }
 
     @Transactional

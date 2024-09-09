@@ -100,6 +100,7 @@ public class SlotController {
         return ResponseEntity.ok(response);
     }
 
+    // FOR DOCTOR ONLY
     @DeleteMapping("/{slotId}")
     public ResponseEntity<?> deleteSlot(
             @PathVariable Long slotId) {

@@ -41,7 +41,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     Optional<Appointment> findByIdAndUserEmail(Long appointmentId, String email);
 
     @Modifying
-    @Query("UPDATE Appointment a SET a.appointmentStatus = ?2 WHERE a.id = ?1")
+    @Query("UPDATE Appointment a SET a.appointmentStatus = ?2, a.canceledAt = ?3  WHERE a.id = ?1")
+    void updateAppointmentStatusToCancel(Long appointmentId, AppointmentStatus appointmentStatus, LocalDateTime cancelTime);
+
+    @Modifying
+    @Query("UPDATE Appointment a SET a.appointmentStatus = ?2  WHERE a.id = ?1")
     void updateAppointmentStatus(Long appointmentId, AppointmentStatus appointmentStatus);
 
 }

@@ -12,7 +12,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Type;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -22,11 +25,12 @@ import java.util.Map;
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "doctor",
+@Table(
         indexes = {
                 @Index(name = "idx_email", columnList = "email", unique = true)
         }
 )
+@EntityListeners(AuditingEntityListener.class)
 public class Doctor {
 
     @Id
@@ -62,6 +66,7 @@ public class Doctor {
 //    @OneToMany(mappedBy = "doctor")
 //    private List<Slot> slots = new ArrayList<>();
 
+    @JsonIgnore // TODO :: Will use DTO
     private Integer slotSize; // In Minutes
 
     @Transient
@@ -70,6 +75,9 @@ public class Doctor {
     @Email
     @Column(unique = true)
     private String email;
+
+    @CreatedDate
+    private LocalDateTime createdAt;
 
 //    private String password;
 
