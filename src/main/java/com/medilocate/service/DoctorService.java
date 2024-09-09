@@ -3,25 +3,29 @@ package com.medilocate.service;
 import com.medilocate.dto.request.DoctorDTO;
 import com.medilocate.entity.Doctor;
 import com.medilocate.entity.enums.Specialty;
+import com.medilocate.exception.custom.EntityNotFoundException;
 import com.medilocate.repository.DoctorRepository;
 import com.medilocate.util.DistanceUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class DoctorService {
 
     private final DoctorRepository doctorRepository;
 
+    @Transactional
     public Doctor findDoctorById(Long id, Double userLatitude, Double userLongitude) {
         Doctor doctor = doctorRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("No Doctor Found with the given Id"));
+                .orElseThrow(() -> new EntityNotFoundException("No Doctor Found with the given Id"));
 
         if (userLatitude != null && userLongitude != null) {
             double distance = DistanceUtil
@@ -34,6 +38,7 @@ public class DoctorService {
         return doctor;
     }
 
+    @Transactional
     public Doctor saveDoctor(DoctorDTO doctorDTO) {
         Doctor doctor = new Doctor();
         doctor.setName(doctorDTO.getName());
@@ -48,8 +53,10 @@ public class DoctorService {
         return doctorRepository.save(doctor);
     }
 
+    @Transactional
     public Doctor updateDoctor(Long id, DoctorDTO updatedDoctor) {
-        Doctor existingDoctor = doctorRepository.findById(id).orElseThrow(() -> new RuntimeException("No Doctor Found with the given Id"));
+        Doctor existingDoctor = doctorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("No Doctor Found with the given Id"));
 
         existingDoctor.setName(updatedDoctor.getName());
         existingDoctor.setHospital(updatedDoctor.getHospital());
@@ -62,8 +69,13 @@ public class DoctorService {
         return doctorRepository.save(existingDoctor);
     }
 
-    public List<Doctor> findClosestDoctors(double userLatitude, double userLongitude, Specialty specialty, double radius) {
-        List<Object[]> closestDoctors = doctorRepository.findClosestDoctors(userLatitude, userLongitude, specialty, radius);
+    @Transactional
+    public List<Doctor> findClosestDoctors(double userLatitude, double userLongitude, Specialty specialty,
+                                           double radius, int page, int size) {
+
+        List<Object[]> closestDoctors = doctorRepository
+                        .findClosestDoctors(userLatitude, userLongitude, specialty,
+                                radius, PageRequest.of(page - 1, size));
 
         return closestDoctors.stream()
                 .map(result -> {
@@ -77,8 +89,11 @@ public class DoctorService {
 
     }
 
-    public List<Doctor> searchDoctorsByName(String name, int page, int size,  Double userLatitude, Double userLongitude) {
-        List<Doctor> doctorList = doctorRepository.findByNameContaining(name, PageRequest.of(page - 1, size));
+    @Transactional
+    public List<Doctor> searchDoctorsByName(String name, int page, int size,
+                                            Double userLatitude, Double userLongitude) {
+        List<Doctor> doctorList = doctorRepository
+                .findByNameContaining(name, PageRequest.of(page - 1, size));
 
         if (userLatitude != null && userLongitude != null) {
             calculateDistances(doctorList, userLatitude, userLongitude);
@@ -86,10 +101,12 @@ public class DoctorService {
         return doctorList;
     }
 
+    @Transactional
     public List<Doctor> findByCityAndSpeciality(String city, Specialty specialty, int page, int size,
                                                 Double userLatitude, Double userLongitude) {
 
-        List<Doctor> doctorList = doctorRepository.findByCityIgnoreCaseAndSpecialty(city, specialty, PageRequest.of(page - 1, size));
+        List<Doctor> doctorList = doctorRepository
+                .findByCityIgnoreCaseAndSpecialty(city, specialty, PageRequest.of(page - 1, size));
 
         if (userLatitude != null && userLongitude != null) {
             calculateDistances(doctorList, userLatitude, userLongitude);

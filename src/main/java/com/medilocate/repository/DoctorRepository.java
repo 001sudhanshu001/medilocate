@@ -21,7 +21,8 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
     List<Object[]> findClosestDoctors(@Param("userLatitude") double userLatitude,
                                       @Param("userLongitude") double userLongitude,
                                       @Param("specialty") Specialty specialty,
-                                      @Param("radius") double radius);
+                                      @Param("radius") double radius,
+                                      Pageable pageable);
 
     @Query("SELECT d FROM Doctor d WHERE d.name ILIKE %?1% ORDER BY similarity(d.name, ?1) DESC")
     List<Doctor> findByNameContaining(String name, Pageable pageable);

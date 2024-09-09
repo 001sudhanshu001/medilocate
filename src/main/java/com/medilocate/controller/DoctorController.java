@@ -72,9 +72,13 @@ public class DoctorController {
             @RequestParam Double userLatitude,
             @RequestParam Double userLongitude,
             @RequestParam Specialty specialty,
-            @RequestParam(defaultValue = "5", required = false) double radius) {
+            @RequestParam(defaultValue = "5", required = false) double radius,
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "Page must be greater than or equal to 1") int page,
+            @RequestParam(defaultValue = "10") @Min(value = 5, message = "Size must be at least 5")
+            @Max(value = 15, message = "Size must be at most 15") int size) {
 
-        List<Doctor> doctorList = doctorService.findClosestDoctors(userLatitude, userLongitude, specialty, radius);
+        List<Doctor> doctorList = doctorService
+                .findClosestDoctors(userLatitude, userLongitude, specialty, radius, page, size);
         List<DoctorResponseDTO> responseDTOS = doctorList.stream()
                 .map(this::convertToDoctorResponseDTO)
                 .toList();

@@ -30,8 +30,9 @@ public interface SlotRepository extends JpaRepository<Slot, Long> {
                                         @Param("startTime") LocalDateTime startTime,
                                         @Param("endTime") LocalDateTime endTime);
 
-    @Query("SELECT s FROM Slot s WHERE s.doctor = :doctor")
-    List<Slot> findAllActiveSlotsByDoctor(@Param("doctor") Doctor doctor);
+    @Query("SELECT s FROM Slot s WHERE s.doctor = :doctor AND s.startTime >= :currentTime")
+    List<Slot> findFutureSlotsOfDoctor(@Param("doctor") Doctor doctor,
+                                       @Param("currentTime") LocalDateTime currentTime);
 
 
     @Query("SELECT s FROM Slot s WHERE s.id = :slotId AND s.doctor.id = :doctorId") // AND s.status = :status

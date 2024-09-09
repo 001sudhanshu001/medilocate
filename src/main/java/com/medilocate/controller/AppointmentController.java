@@ -23,15 +23,9 @@ public class AppointmentController {
     @PostMapping("/book")
     public ResponseEntity<String> bookAppointment(@RequestBody @Valid
                                                       AppointmentRequest appointmentRequest) {
-        try {
-            String username = "user@gmail.com";
-            appointmentService.bookAppointment(appointmentRequest, username);
-            return ResponseEntity.ok("Appointment booked successfully.");
-        }catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+        String username = "user@gmail.com"; // TODO : FROM JWT
+        appointmentService.bookAppointment(appointmentRequest, username);
+        return ResponseEntity.ok("Appointment booked successfully.");
     }
 
     @GetMapping("/user")

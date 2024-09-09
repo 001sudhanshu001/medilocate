@@ -5,6 +5,8 @@ import com.medilocate.entity.Doctor;
 import com.medilocate.entity.Slot;
 import com.medilocate.entity.enums.SlotStatus;
 import com.medilocate.exception.custom.EntityNotFoundException;
+import com.medilocate.exception.custom.SlotNotFoundException;
+import com.medilocate.exception.custom.SlotOverlapException;
 import com.medilocate.repository.DoctorRepository;
 import com.medilocate.repository.SlotRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,9 +14,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class SlotService {
 
@@ -23,7 +27,6 @@ public class SlotService {
 
     @Transactional
     public Slot createSlot(SlotRequest slotRequest, String doctorEmail) {
-        // This will never happen as we will implement JWT, so can remove this
         Doctor doctor = doctorRepository.findByEmail(doctorEmail)
                 .orElseThrow(() -> new EntityNotFoundException("Doctor not found"));
 
@@ -34,9 +37,9 @@ public class SlotService {
         slot.setStatus(SlotStatus.AVAILABLE);
         slot.setDeleted(false);
 
-        List<Slot> existingSlots = slotRepository.findAllActiveSlotsByDoctor(doctor);
+        List<Slot> existingSlots = slotRepository.findFutureSlotsOfDoctor(doctor, LocalDateTime.now());
         if (isSlotOverlapping(slot, existingSlots)) {
-            throw new IllegalStateException("The slot overlaps with an existing slot.");
+            throw new SlotOverlapException("The slot overlaps with an existing slot.");
         }
 
         return slotRepository.save(slot);
@@ -48,7 +51,7 @@ public class SlotService {
                 .orElseThrow(() -> new EntityNotFoundException("Doctor not found"));
 
         Slot slot = slotRepository.findByIdAndDoctorId(slotId, doctor.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Slot not found"));
+                .orElseThrow(() -> new SlotNotFoundException("Slot not found"));
 
         slot.setStartTime(slotRequest.getStartTime());
         slot.setEndTime(slotRequest.getEndTime());
@@ -56,14 +59,15 @@ public class SlotService {
         slot.setStatus(SlotStatus.AVAILABLE);
         slot.setDeleted(false);
 
-        List<Slot> existingSlots = slotRepository.findAllActiveSlotsByDoctor(doctor);
+        List<Slot> existingSlots = slotRepository.findFutureSlotsOfDoctor(doctor, LocalDateTime.now());
         if (isSlotOverlapping(slot, existingSlots)) {
-            throw new IllegalStateException("Slot overlaps with an existing slot");
+            throw new SlotOverlapException("Slot overlaps with an existing slot");
         }
 
         return slotRepository.save(slot);
     }
 
+    @Transactional
     public List<Slot> getSlotsByDoctorAndDate(Long doctorId, LocalDate date) {
         return slotRepository.findByDoctorIdAndSlotDate(doctorId, date);
     }
@@ -71,18 +75,12 @@ public class SlotService {
     @Transactional
     public void deleteSlot(Long slotId, String doctorEmail) {
         Doctor doctor = doctorRepository.findByEmail(doctorEmail)
-                .orElseThrow(() -> new EntityNotFoundException("Doctor not found"))
-                ;
+                .orElseThrow(() -> new EntityNotFoundException("Doctor not found"));
+
         Slot slot = slotRepository.findByIdAndDoctorId(slotId, doctor.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Slot not found"));
+                .orElseThrow(() -> new SlotNotFoundException("Slot not found"));
 
         slotRepository.delete(slot);
-    }
-
-    private boolean isOverlapping(Slot newSlot, Slot existingSlot) {
-        return newSlot.getDoctor().equals(existingSlot.getDoctor()) &&
-                !(newSlot.getEndTime().isBefore(existingSlot.getStartTime()) ||
-                        newSlot.getStartTime().isAfter(existingSlot.getEndTime()));
     }
 
     private boolean isSlotOverlapping(Slot newSlot, List<Slot> existingSlots) {

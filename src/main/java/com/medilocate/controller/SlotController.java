@@ -24,14 +24,6 @@ public class SlotController {
 
     private final SlotService slotService;
 
-    // TODO
-    // @PostMapping("/resetSlots")
-    public ResponseEntity<String> resetSlots() {
-        String usernmae = "sarya@gmail.com"; // Fetch username from JWT
-//        slotService.resetSlots(usernmae);
-        return ResponseEntity.ok("Slots reset successfully");
-    }
-
     // DOCTOR ONLY
     @PostMapping("/create")
     public ResponseEntity<?> createSlot(@Valid @RequestBody SlotRequest slotRequest, BindingResult result) {
@@ -44,11 +36,7 @@ public class SlotController {
         }
 
         String doctorEmail = "sarya@gmail.com"; // FROM JWT
-        try {
-            slotService.createSlot(slotRequest, doctorEmail);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        slotService.createSlot(slotRequest, doctorEmail);
 
         return new ResponseEntity<>("Slot Created Successfully", HttpStatus.CREATED);
     }
@@ -66,19 +54,14 @@ public class SlotController {
         }
 
         String doctorEmail = "sarya@gmail.com"; // FROM JWT
-        try {
-            slotService.updateSlot(slotRequest, id, doctorEmail);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        slotService.updateSlot(slotRequest, id, doctorEmail);
 
         return new ResponseEntity<>("Slot Updated Successfully", HttpStatus.OK);
     }
 
     @GetMapping("/doctor/{doctorId}")
-    public ResponseEntity<?> getSlotsByDoctorAndDate(
-            @PathVariable Long doctorId,
-            @RequestParam("date") String date) {
+    public ResponseEntity<?> getSlotsByDoctorAndDate(@PathVariable Long doctorId,
+                                              @RequestParam("date") String date) {
 
         LocalDate localDate;
         try {
@@ -102,16 +85,11 @@ public class SlotController {
 
     // FOR DOCTOR ONLY
     @DeleteMapping("/{slotId}")
-    public ResponseEntity<?> deleteSlot(
-            @PathVariable Long slotId) {
-
+    public ResponseEntity<?> deleteSlot(@PathVariable Long slotId) {
         String doctorEmail = "sarya@gmail.com"; // Will be FROM JWT
-        try {
-            slotService.deleteSlot(slotId, doctorEmail);
-            return ResponseEntity.ok("Slot deleted successfully.");
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
+
+        slotService.deleteSlot(slotId, doctorEmail);
+        return ResponseEntity.ok("Slot deleted successfully.");
     }
 
     private SlotResponse convertToSlotResponse(Slot slot) {
@@ -121,6 +99,14 @@ public class SlotController {
                 .startTime(slot.getStartTime())
                 .endTime(slot.getEndTime())
                 .build();
+    }
+
+    // TODO
+    // @PostMapping("/resetSlots")
+    public ResponseEntity<String> resetSlots() {
+        String usernmae = "sarya@gmail.com"; // Fetch username from JWT
+//        slotService.resetSlots(usernmae);
+        return ResponseEntity.ok("Slots reset successfully");
     }
 
 }
