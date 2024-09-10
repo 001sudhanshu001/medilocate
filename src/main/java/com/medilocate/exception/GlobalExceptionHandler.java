@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -63,6 +64,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAppointmentNotFoundException(AppointmentNotFoundException ex) {
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(DateTimeParseException.class)
+    public ResponseEntity<String> handleDateTimeParseException(DateTimeParseException ex) {
+        return ResponseEntity.badRequest().body("Invalid date format. Use YYYY-MM-DD");
     }
 
     @ExceptionHandler(IllegalStateException.class)

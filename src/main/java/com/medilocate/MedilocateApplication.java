@@ -18,7 +18,6 @@ import java.util.Map;
 @EnableJpaAuditing
 public class MedilocateApplication implements CommandLineRunner {
 
-
 	private final DoctorService doctorService;
 
 	private final ObjectMapper objectMapper;

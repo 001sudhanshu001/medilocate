@@ -3,7 +3,6 @@ package com.medilocate.controller;
 import com.medilocate.dto.request.SlotRequest;
 import com.medilocate.dto.response.SlotResponse;
 import com.medilocate.entity.Slot;
-import com.medilocate.exception.custom.EntityNotFoundException;
 import com.medilocate.service.SlotService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +12,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -61,17 +59,16 @@ public class SlotController {
 
     @GetMapping("/doctor/{doctorId}")
     public ResponseEntity<?> getSlotsByDoctorAndDate(@PathVariable Long doctorId,
-                                              @RequestParam("date") String date) {
+                                              @RequestParam(value = "date", required = false) String date) {
 
-        LocalDate localDate;
-        try {
-            localDate = LocalDate.parse(date); // date is passed in YYYY-MM-DD format
-        } catch (DateTimeParseException e) {
-            return ResponseEntity.badRequest().body("Invalid date format. Use YYYY-MM-DD");
+        List<Slot> slotsByDoctorAndDate;
+        if(date == null) {
+            slotsByDoctorAndDate = slotService.getSlotsByDoctorAndDate(doctorId, LocalDate.now());
+        } else {
+            LocalDate  localDate = LocalDate.parse(date); // date is passed in YYYY-MM-DD format
+
+            slotsByDoctorAndDate = slotService.getSlotsByDoctorAndDate(doctorId, localDate);
         }
-
-        List<Slot> slotsByDoctorAndDate = slotService.getSlotsByDoctorAndDate(doctorId, localDate);
-
         if (slotsByDoctorAndDate.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -98,15 +95,9 @@ public class SlotController {
                 .doctorId(slot.getDoctor().getId())
                 .startTime(slot.getStartTime())
                 .endTime(slot.getEndTime())
+                .status(slot.getStatus())
                 .build();
     }
 
-    // TODO
-    // @PostMapping("/resetSlots")
-    public ResponseEntity<String> resetSlots() {
-        String usernmae = "sarya@gmail.com"; // Fetch username from JWT
-//        slotService.resetSlots(usernmae);
-        return ResponseEntity.ok("Slots reset successfully");
-    }
 
 }

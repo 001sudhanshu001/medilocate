@@ -9,7 +9,7 @@ import java.time.LocalTime;
 @Entity
 @Getter @Setter
 public class DoctorSlotConfiguration {
-    // This will be Slots that a Doctor have foe daily schedule
+    // This will be Slots that a Doctor have for daily schedule
     // Many DoctorSlotConfiguration will be related to one Doctor
 
     @Id

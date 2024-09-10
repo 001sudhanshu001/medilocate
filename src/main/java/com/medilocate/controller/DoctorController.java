@@ -2,9 +2,11 @@ package com.medilocate.controller;
 
 import com.medilocate.dto.request.DoctorDTO;
 import com.medilocate.dto.response.DoctorResponseDTO;
+import com.medilocate.dto.response.DoctorSearchResponse;
 import com.medilocate.entity.Doctor;
 import com.medilocate.entity.enums.Specialty;
 import com.medilocate.service.DoctorService;
+import com.medilocate.util.DistanceUtil;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -14,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
 
 @RestController
@@ -44,7 +47,6 @@ public class DoctorController {
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile() {
         String doctorEmail = "sarya@gmail.com"; // FROM JWT
-        System.out.println("CALLED");
         return ResponseEntity.ok(convertToDoctorResponseDTO(doctorService.findByEmail(doctorEmail)));
     }
 
@@ -60,22 +62,27 @@ public class DoctorController {
     @GetMapping("/search") // This is Used for Search Bar
     public ResponseEntity<?> searchDoctorsByName(
             @RequestParam @NotBlank(message = "Name cannot be blank") String name,
-            @RequestParam(required = false) double userLatitude,
-            @RequestParam(required = false) double userLongitude,
-            @RequestParam(defaultValue = "1") @Min(value = 1, message = "Page must be greater than or equal to 1") int page,
-            @RequestParam(defaultValue = "10") @Min(value = 5, message = "Size must be at least 5")
+            @RequestParam(required = false) Double userLatitude,
+            @RequestParam(required = false) Double userLongitude,
+            @RequestParam(defaultValue = "1", required = false) @Min(value = 1, message = "Page must be greater than or equal to 1") int page,
+            @RequestParam(defaultValue = "10", required = false) @Min(value = 5, message = "Size must be at least 5")
             @Max(value = 15, message = "Size must be at most 15") int size) {
 
-        List<Doctor> doctorList = doctorService.searchDoctorsByName(name, page, size, userLatitude, userLongitude);
-        List<DoctorResponseDTO> responseDTOS = doctorList.stream()
-                .map(this::convertToDoctorResponseDTO)
-                .toList();
+        DoctorSearchResponse response = doctorService.searchDoctorsByName(name, page, size, userLatitude, userLongitude);
 
-        return ResponseEntity.ok(responseDTOS);
+        // TODO : Refactor Code to move this Logic from Service to Controller
+        //List<Doctor> doctorList = doctorService.searchDoctorsByName(name, page, size, userLatitude, userLongitude);
+//        List<DoctorResponseDTO> responseDTOS = doctorList.stream()
+//                .map(this::convertToDoctorResponseDTO)
+//                .toList();
+//
+//        DoctorSearchResponse response = new DoctorSearchResponse(responseDTOS, doctorList.size());
+        return ResponseEntity.ok(response);
     }
 
+
     @GetMapping("/search-closest")
-    public ResponseEntity<List<?>> searchDoctors(
+    public ResponseEntity<DoctorSearchResponse> searchDoctors(
             @RequestParam Double userLatitude,
             @RequestParam Double userLongitude,
             @RequestParam Specialty specialty,
@@ -84,18 +91,23 @@ public class DoctorController {
             @RequestParam(defaultValue = "10") @Min(value = 5, message = "Size must be at least 5")
             @Max(value = 15, message = "Size must be at most 15") int size) {
 
-        List<Doctor> doctorList = doctorService
-                .findClosestDoctors(userLatitude, userLongitude, specialty, radius, page, size);
-        List<DoctorResponseDTO> responseDTOS = doctorList.stream()
-                .map(this::convertToDoctorResponseDTO)
-                .toList();
 
-        return ResponseEntity.ok(responseDTOS);
+//        List<Doctor> doctorList = doctorService
+//                .findClosestDoctors(userLatitude, userLongitude, specialty, radius, page, size);
+//        List<DoctorResponseDTO> responseDTOS = doctorList.stream()
+//                .map(this::convertToDoctorResponseDTO)
+//                .toList();
+//
+//        return ResponseEntity.ok(responseDTOS);
+
+        DoctorSearchResponse closestDoctors = doctorService.findClosestDoctors(userLatitude, userLongitude, specialty, radius, page, size);
+
+        return ResponseEntity.ok(closestDoctors);
     }
 
     // TODO : Input Validation and Handling Exception
     @GetMapping("/search-by-city-and-specialty")
-    public ResponseEntity<List<?>> searchDoctorsByCityAndSpeciality(
+    public ResponseEntity<DoctorSearchResponse> searchDoctorsByCityAndSpeciality(
             @RequestParam @NotBlank(message = "City cannot be blank") String city,
             @RequestParam @NotNull(message = "Specialty is required") Specialty specialty,
             @RequestParam(required = false) Double userLatitude,
@@ -104,14 +116,23 @@ public class DoctorController {
             @RequestParam(defaultValue = "10") @Min(value = 5, message = "Size must be at least 5")
             @Max(value = 15, message = "Size must be at most 15") int size) {
 
-        List<Doctor> doctorList = doctorService
+
+        DoctorSearchResponse searchResponse = doctorService
                 .findByCityAndSpeciality(city, specialty, page, size, userLatitude, userLongitude);
 
-        List<DoctorResponseDTO> responseDTOS = doctorList.stream()
-                .map(this::convertToDoctorResponseDTO)
-                .toList();
+//        List<Doctor> doctorList = doctorService
+//                .findByCityAndSpeciality(city, specialty, page, size, userLatitude, userLongitude);
+//
+//        List<DoctorResponseDTO> responseDTOS = doctorList.stream()
+//                .map(this::convertToDoctorResponseDTO)
+//                .toList();
 
-        return ResponseEntity.ok(responseDTOS);
+//        return ResponseEntity.ok(responseDTOS);
+
+        if(searchResponse.getDoctors().isEmpty()) {
+            return new ResponseEntity<>(searchResponse, HttpStatus.NO_CONTENT);
+        }
+        return ResponseEntity.ok(searchResponse);
 
     }
 
@@ -129,6 +150,14 @@ public class DoctorController {
                 .distance(doctor.getDistance())
                 .email(doctor.getEmail())
                 .build();
+    }
+
+    public void calculateDistances(List<Doctor> doctors, double userLatitude, double userLongitude) {
+        for (Doctor doctor : doctors) {
+            double distance = DistanceUtil.calculateDistance(userLatitude, userLongitude, doctor.getLatitude(), doctor.getLongitude());
+            doctor.setDistance(distance);
+        }
+        doctors.sort(Comparator.comparingDouble(Doctor::getDistance));
     }
 
 

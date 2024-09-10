@@ -1,19 +1,22 @@
 package com.medilocate.service;
 
 import com.medilocate.dto.request.DoctorDTO;
+import com.medilocate.dto.response.DoctorResponseDTO;
+import com.medilocate.dto.response.DoctorSearchResponse;
 import com.medilocate.entity.Doctor;
 import com.medilocate.entity.enums.Specialty;
 import com.medilocate.exception.custom.EntityNotFoundException;
 import com.medilocate.repository.DoctorRepository;
 import com.medilocate.util.DistanceUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -76,14 +79,15 @@ public class DoctorService {
     }
 
     @Transactional
-    public List<Doctor> findClosestDoctors(double userLatitude, double userLongitude, Specialty specialty,
+    public DoctorSearchResponse findClosestDoctors(double userLatitude, double userLongitude, Specialty specialty,
                                            double radius, int page, int size) {
 
-        List<Object[]> closestDoctors = doctorRepository
+        Page<Object[]> doctorPage = doctorRepository
                         .findClosestDoctors(userLatitude, userLongitude, specialty,
                                 radius, PageRequest.of(page - 1, size));
 
-        return closestDoctors.stream()
+        List<Object[]> list = new ArrayList<>(doctorPage.getContent());
+        List<Doctor> doctorList = list.stream()
                 .map(result -> {
                     Doctor doctor = (Doctor) result[0];
                     double distance = (Double) result[1];
@@ -91,42 +95,90 @@ public class DoctorService {
                     return doctor;
                 })
                 .sorted(Comparator.comparingDouble(Doctor::getDistance))
-                .collect(Collectors.toList());
+                .toList();
 
+        List<DoctorResponseDTO> responseDTOS = doctorList.stream()
+                .map(this::convertToDoctorResponseDTO)
+                .toList();
+
+        return new DoctorSearchResponse(responseDTOS, doctorPage.getTotalPages());
     }
 
     @Transactional
-    public List<Doctor> searchDoctorsByName(String name, int page, int size,
+    public DoctorSearchResponse searchDoctorsByName(String name, int page, int size,
                                             Double userLatitude, Double userLongitude) {
-        List<Doctor> doctorList = doctorRepository
+
+        // TODO : Code Refactor to use
+        Page<Doctor> doctorPage = doctorRepository
                 .findByNameContaining(name, PageRequest.of(page - 1, size));
 
+        List<Doctor> doctorList = new ArrayList<>(doctorPage.getContent());
+
+        // TODO : Refactor Code to separate the Distance Calculation Logic
         if (userLatitude != null && userLongitude != null) {
-            calculateDistances(doctorList, userLatitude, userLongitude);
+            calculateDistances(doctorList, userLatitude, userLongitude, false);
         }
-        return doctorList;
+
+        List<DoctorResponseDTO> responseDTOS = doctorList.stream()
+                .map(this::convertToDoctorResponseDTO)
+                .toList();
+
+        return new DoctorSearchResponse(responseDTOS, doctorPage.getTotalPages());
     }
 
     @Transactional
-    public List<Doctor> findByCityAndSpeciality(String city, Specialty specialty, int page, int size,
+    public DoctorSearchResponse findByCityAndSpeciality(String city, Specialty specialty, int page, int size,
                                                 Double userLatitude, Double userLongitude) {
 
-        List<Doctor> doctorList = doctorRepository
+        Page<Doctor> doctorPage = doctorRepository
                 .findByCityIgnoreCaseAndSpecialty(city, specialty, PageRequest.of(page - 1, size));
 
-        if (userLatitude != null && userLongitude != null) {
-            calculateDistances(doctorList, userLatitude, userLongitude);
+        List<Doctor> doctorList = new ArrayList<>(doctorPage.getContent());
+
+        if(doctorList.isEmpty()) {
+            return new DoctorSearchResponse(new ArrayList<DoctorResponseDTO>(), 0);
         }
-        return doctorList;
+
+        if (userLatitude != null && userLongitude != null) {
+            calculateDistances(doctorList, userLatitude, userLongitude, true);
+        }
+
+        List<DoctorResponseDTO> responseDTOS = doctorList.stream()
+                .map(this::convertToDoctorResponseDTO)
+                .toList();
+        return new DoctorSearchResponse(responseDTOS, doctorPage.getTotalPages());
     }
 
+    @Transactional
     // Or this Calculations can be Done at the DB
-    public void calculateDistances(List<Doctor> doctors, double userLatitude, double userLongitude) {
+    public void calculateDistances(List<Doctor> doctors, double userLatitude,
+                                   double userLongitude, boolean sortPerDistance) {
         for (Doctor doctor : doctors) {
-            double distance = DistanceUtil.calculateDistance(userLatitude, userLongitude, doctor.getLatitude(), doctor.getLongitude());
+            Double distance = DistanceUtil.calculateDistance(userLatitude, userLongitude,
+                    doctor.getLatitude(), doctor.getLongitude());
             doctor.setDistance(distance);
         }
-        doctors.sort(Comparator.comparingDouble(Doctor::getDistance));
+
+        if(sortPerDistance && doctors.size() > 1) {
+             doctors.sort(Comparator.comparingDouble(Doctor::getDistance));
+        }
     }
+
+    public DoctorResponseDTO convertToDoctorResponseDTO(Doctor doctor) {
+        return DoctorResponseDTO.builder()
+                .id(doctor.getId())
+                .name(doctor.getName())
+                .hospital(doctor.getHospital())
+                .specialty(doctor.getSpecialty())
+                .availability(doctor.getAvailability())
+                .latitude(doctor.getLatitude())
+                .longitude(doctor.getLongitude())
+                .city(doctor.getCity())
+                .status(doctor.getStatus())
+                .distance(doctor.getDistance())
+                .email(doctor.getEmail())
+                .build();
+    }
+
 
 }

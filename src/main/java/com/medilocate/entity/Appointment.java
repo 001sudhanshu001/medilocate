@@ -55,6 +55,6 @@ public class Appointment {
     private LocalDateTime canceledAt;
 
     @Column(name = "notification_sent")
-    private boolean notificationSent;
+    private Boolean notificationSent;
 
 }

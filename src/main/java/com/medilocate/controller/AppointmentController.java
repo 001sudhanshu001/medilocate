@@ -1,6 +1,7 @@
 package com.medilocate.controller;
 
 import com.medilocate.dto.request.AppointmentRequest;
+import com.medilocate.dto.response.AppointmentResponse;
 import com.medilocate.dto.response.BookedAppointmentResponse;
 import com.medilocate.entity.Appointment;
 import com.medilocate.service.AppointmentService;
@@ -11,7 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/appointments")
@@ -29,22 +30,52 @@ public class AppointmentController {
     }
 
     @GetMapping("/user")
-    public ResponseEntity<?> getUserAppointments(@RequestParam(defaultValue = "1")
+    public ResponseEntity<AppointmentResponse> getUserAppointments(@RequestParam(defaultValue = "1", required = false)
             @Min(value = 1, message = "Page must be greater than or equal to 1") int page) {
 
         String userEmail = "user@gmail.com"; // TODO : From JWT
-        List<Appointment> appointmentList =
-                appointmentService.getAppointmentsByUser(userEmail, page).getContent();
 
-        if(appointmentList.isEmpty()) {
-            return ResponseEntity.noContent().build();
+        AppointmentResponse response = appointmentService.getAppointmentsByUser(userEmail, page);
+        if(response.getAppointmentList().isEmpty()) {
+            return new ResponseEntity<>(response, HttpStatus.NO_CONTENT);
         }
 
-        List<BookedAppointmentResponse> responseList = appointmentList.stream()
-                .map(this::convertToResponse)
-                .toList();
+        return ResponseEntity.ok(response);
+//        List<Appointment> appointmentList =
+//                appointmentService.getAppointmentsByUser(userEmail, page).getContent();
+//
+//        if(appointmentList.isEmpty()) {
+//            return ResponseEntity.noContent().build();
+//        }
+//
+//        List<BookedAppointmentResponse> responseList = appointmentList.stream()
+//                .map(this::convertToResponse)
+//                .toList();
+//
+//        return ResponseEntity.ok(responseList);
+    }
 
-        return ResponseEntity.ok(responseList);
+    @GetMapping("/doctor")
+    public ResponseEntity<AppointmentResponse> getDoctorAppointments(
+            @RequestParam(required = false) String date, // YYYY-MM-DD
+            @RequestParam(defaultValue = "1", required = false)
+            @Min(value = 1, message = "Page must be greater than or equal to 1") int page) {
+
+        String doctorEmail = "sarya@gmail.com"; // TODO : From JWT
+
+        AppointmentResponse appointmentResponse;
+        if(date == null) {
+            appointmentResponse = appointmentService.getAppointmentsByDoctor(doctorEmail, LocalDate.now(), page);
+        } else {
+            LocalDate localDate = LocalDate.parse(date);
+
+            appointmentResponse = appointmentService.getAppointmentsByDoctor(doctorEmail, localDate, page);
+        }
+        if (appointmentResponse.getAppointmentList().isEmpty()) {
+            return new ResponseEntity<>(appointmentResponse, HttpStatus.NO_CONTENT);
+        }
+
+        return ResponseEntity.ok(appointmentResponse);
     }
 
     @DeleteMapping("/cancel")

@@ -18,7 +18,7 @@ public class AppointmentRequest {
     private Long doctorId;
 
     // TODO -> Will Switch it with JWT
-    @NotNull(message = "User ID cannot be null")
+   // @NotNull(message = "User ID cannot be null")
     private Long userId;
 
     private String description;

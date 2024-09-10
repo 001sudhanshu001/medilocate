@@ -1,6 +1,8 @@
 package com.medilocate.service;
 
 import com.medilocate.dto.request.AppointmentRequest;
+import com.medilocate.dto.response.AppointmentResponse;
+import com.medilocate.dto.response.BookedAppointmentResponse;
 import com.medilocate.entity.Appointment;
 import com.medilocate.entity.Doctor;
 import com.medilocate.entity.Slot;
@@ -19,7 +21,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -72,12 +77,42 @@ public class AppointmentService {
     }
 
     @Transactional
-    public Page<Appointment> getAppointmentsByUser(String userEmail, int page) {
+    public AppointmentResponse getAppointmentsByUser(String userEmail, int page) {
         Pageable pageable = PageRequest.of(page - 1, 10);
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException("User Not Found !!!"));
 
-        return appointmentRepository.findByBookedBYOrderByIdDesc(user, pageable);
+        Page<Appointment> userAppointmentPage = appointmentRepository.findByBookedBYOrderById(user, pageable);
+
+        ArrayList<Appointment> appointments = new ArrayList<>(userAppointmentPage.getContent());
+
+        List<BookedAppointmentResponse> responseList = appointments.stream()
+                .map(this::convertToResponse)
+                .toList();
+
+        return new AppointmentResponse(responseList, userAppointmentPage.getTotalPages());
+    }
+
+    @Transactional
+    public AppointmentResponse getAppointmentsByDoctor(String doctorEmail, LocalDate appointmentDate, int page) {
+        Pageable pageable = PageRequest.of(page - 1, 10);
+
+        Doctor doctor = doctorRepository.findByEmail(doctorEmail)
+                .orElseThrow(() -> new EntityNotFoundException("Doctor Not Found !!!"));
+
+        Page<Appointment> doctorAppointmentPage =
+                appointmentRepository.findByDoctorAndDate(doctor, appointmentDate, pageable);
+
+        List<Appointment> appointments = new ArrayList<>(doctorAppointmentPage.getContent());
+        if(appointments.isEmpty()) {
+            return new AppointmentResponse(new ArrayList<>(), doctorAppointmentPage.getTotalPages());
+        }
+
+        List<BookedAppointmentResponse> responseList = appointments.stream()
+                .map(this::convertToResponse)
+                .toList();
+
+        return new AppointmentResponse(responseList, doctorAppointmentPage.getTotalPages());
     }
 
     @Transactional
@@ -108,6 +143,19 @@ public class AppointmentService {
         appointmentRepository.updateAppointmentStatus(appointmentId, AppointmentStatus.COMPLETED);
 
         slotRepository.updateSlotStatus(SlotStatus.USED, appointment.getSlot().getId());
+    }
+
+    private BookedAppointmentResponse convertToResponse(Appointment appointment) {
+        return BookedAppointmentResponse.builder()
+                .id(appointment.getId())
+                .doctorName(appointment.getDoctor().getName())
+                .city(appointment.getDoctor().getCity())
+                .latitude(appointment.getDoctor().getLatitude())
+                .longitude(appointment.getDoctor().getLongitude())
+                .appointmentStatus(appointment.getAppointmentStatus())
+                .startTime(appointment.getSlot().getStartTime())
+                .endTime(appointment.getSlot().getEndTime())
+                .build();
     }
 
 }

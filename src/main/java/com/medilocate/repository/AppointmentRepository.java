@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +30,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     List<Appointment> findByBookedBY(User user);
 
-    Page<Appointment> findByBookedBYOrderByIdDesc(User user, Pageable pageable);
+    @Query("SELECT a FROM Appointment  a WHERE a.bookedBY = ?1 ORDER BY a.id DESC")
+    Page<Appointment> findByBookedBYOrderById(User user, Pageable pageable);
 
     Optional<Appointment> findByIdAndBookedBY(Long id, User bookedBy);
 
@@ -43,7 +45,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     @Modifying
     @Query("UPDATE Appointment a SET a.appointmentStatus = ?2, a.canceledAt = ?3  WHERE a.id = ?1")
-    void updateAppointmentStatusToCancel(Long appointmentId, AppointmentStatus appointmentStatus, LocalDateTime cancelTime);
+    void updateAppointmentStatusToCancel(Long appointmentId, AppointmentStatus appointmentStatus,
+                                         LocalDateTime cancelTime);
 
     @Modifying
     @Query("UPDATE Appointment a SET a.appointmentStatus = ?2  WHERE a.id = ?1")
@@ -57,6 +60,10 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("status") AppointmentStatus status
     );
 
+    @Query("SELECT a FROM Appointment a WHERE a.doctor = :doctor AND FUNCTION('DATE', a.startTime) = :date ORDER BY a.id DESC ")
+    Page<Appointment> findByDoctorAndDate(@Param("doctor") Doctor doctor,
+                                          @Param("date") LocalDate date,
+                                          Pageable pageable);
 
     @Modifying
     @Query("UPDATE Appointment a SET a.notificationSent = true WHERE a.id IN :ids")
