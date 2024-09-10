@@ -41,18 +41,6 @@ public class AppointmentController {
         }
 
         return ResponseEntity.ok(response);
-//        List<Appointment> appointmentList =
-//                appointmentService.getAppointmentsByUser(userEmail, page).getContent();
-//
-//        if(appointmentList.isEmpty()) {
-//            return ResponseEntity.noContent().build();
-//        }
-//
-//        List<BookedAppointmentResponse> responseList = appointmentList.stream()
-//                .map(this::convertToResponse)
-//                .toList();
-//
-//        return ResponseEntity.ok(responseList);
     }
 
     @GetMapping("/doctor")

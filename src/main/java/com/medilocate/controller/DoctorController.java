@@ -69,14 +69,6 @@ public class DoctorController {
             @Max(value = 15, message = "Size must be at most 15") int size) {
 
         DoctorSearchResponse response = doctorService.searchDoctorsByName(name, page, size, userLatitude, userLongitude);
-
-        // TODO : Refactor Code to move this Logic from Service to Controller
-        //List<Doctor> doctorList = doctorService.searchDoctorsByName(name, page, size, userLatitude, userLongitude);
-//        List<DoctorResponseDTO> responseDTOS = doctorList.stream()
-//                .map(this::convertToDoctorResponseDTO)
-//                .toList();
-//
-//        DoctorSearchResponse response = new DoctorSearchResponse(responseDTOS, doctorList.size());
         return ResponseEntity.ok(response);
     }
 
@@ -90,15 +82,6 @@ public class DoctorController {
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "Page must be greater than or equal to 1") int page,
             @RequestParam(defaultValue = "10") @Min(value = 5, message = "Size must be at least 5")
             @Max(value = 15, message = "Size must be at most 15") int size) {
-
-
-//        List<Doctor> doctorList = doctorService
-//                .findClosestDoctors(userLatitude, userLongitude, specialty, radius, page, size);
-//        List<DoctorResponseDTO> responseDTOS = doctorList.stream()
-//                .map(this::convertToDoctorResponseDTO)
-//                .toList();
-//
-//        return ResponseEntity.ok(responseDTOS);
 
         DoctorSearchResponse closestDoctors = doctorService.findClosestDoctors(userLatitude, userLongitude, specialty, radius, page, size);
 
@@ -119,15 +102,6 @@ public class DoctorController {
 
         DoctorSearchResponse searchResponse = doctorService
                 .findByCityAndSpeciality(city, specialty, page, size, userLatitude, userLongitude);
-
-//        List<Doctor> doctorList = doctorService
-//                .findByCityAndSpeciality(city, specialty, page, size, userLatitude, userLongitude);
-//
-//        List<DoctorResponseDTO> responseDTOS = doctorList.stream()
-//                .map(this::convertToDoctorResponseDTO)
-//                .toList();
-
-//        return ResponseEntity.ok(responseDTOS);
 
         if(searchResponse.getDoctors().isEmpty()) {
             return new ResponseEntity<>(searchResponse, HttpStatus.NO_CONTENT);

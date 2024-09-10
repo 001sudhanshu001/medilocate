@@ -25,6 +25,7 @@ public class SlotSchedulerService {
     private final DoctorSlotConfigurationRepository configRepository;
     private final SlotRepository slotRepository;
 
+    // TODO :Enhance it using the Availability of Doctor, which can generate Slot for Doctors based on there schedule
     @Scheduled(cron = "0 0 22 ? * SUN-THU")
     public void generateDoctorSlotsForNextDay() {
         List<Doctor> doctors = doctorRepository.findAll();
