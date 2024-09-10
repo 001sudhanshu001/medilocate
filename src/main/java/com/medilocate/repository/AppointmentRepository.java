@@ -48,5 +48,20 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     @Modifying
     @Query("UPDATE Appointment a SET a.appointmentStatus = ?2  WHERE a.id = ?1")
     void updateAppointmentStatus(Long appointmentId, AppointmentStatus appointmentStatus);
+    
+    @Query("SELECT a FROM Appointment a WHERE a.notificationSent = false AND a.appointmentStatus = :status " +
+            "AND a.startTime BETWEEN :now AND :oneHourLater")
+    List<Appointment> findAppointmentsForNotification(
+            @Param("now") LocalDateTime now,
+            @Param("oneHourLater") LocalDateTime oneHourLater,
+            @Param("status") AppointmentStatus status
+    );
+
+
+    @Modifying
+    @Query("UPDATE Appointment a SET a.notificationSent = true WHERE a.id IN :ids")
+    void updateNotificationSentStatus(@Param("ids") List<Long> ids);
+
+    void deleteByStartTimeBefore(LocalDateTime cutoffDate);
 
 }
