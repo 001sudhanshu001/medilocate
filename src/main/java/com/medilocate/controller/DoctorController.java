@@ -40,13 +40,20 @@ public class DoctorController {
         return ResponseEntity.ok(savedDoctor);
     }
 
+    // DOCTOR ONLY
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile() {
+        String doctorEmail = "sarya@gmail.com"; // FROM JWT
+        System.out.println("CALLED");
+        return ResponseEntity.ok(convertToDoctorResponseDTO(doctorService.findByEmail(doctorEmail)));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getDoctor(@PathVariable Long id,
                                        @RequestParam(required = false) Double userLatitude,
                                        @RequestParam(required = false) Double userLongitude
     ) {
         Doctor doctor = doctorService.findDoctorById(id, userLatitude, userLongitude);
-        System.out.println("DOCTOR DISTANCE :: " + doctor.getDistance());
         return ResponseEntity.ok(convertToDoctorResponseDTO(doctor));
     }
 

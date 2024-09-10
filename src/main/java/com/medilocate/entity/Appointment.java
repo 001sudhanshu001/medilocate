@@ -2,6 +2,7 @@ package com.medilocate.entity;
 
 import com.medilocate.entity.enums.AppointmentStatus;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Future;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,9 +35,9 @@ public class Appointment {
     @JoinColumn(name = "booked_by_user_having_id", nullable = false)
     private User bookedBY;
 
-//    @Future(message = "Appointment time must be in the future")
-//    @Column(nullable = false)
-//    private LocalDateTime startTime;
+    @Future(message = "Appointment time must be in the future")
+    @Column(nullable = false) // This is for de-normalization of data, this will have same time as the Slot
+    private LocalDateTime startTime; // startTime, This is Done to save the JOIN b/w Appointment and Slot
 //
 //    @Future(message = "Appointment End time must be in the future")
 //    @Column(nullable = true)
@@ -52,5 +53,8 @@ public class Appointment {
     private LocalDateTime createdAt;
 
     private LocalDateTime canceledAt;
+
+    @Column(name = "notification_sent")
+    private boolean notificationSent;
 
 }

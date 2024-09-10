@@ -64,6 +64,7 @@ public class AppointmentService {
         appointment.setDoctor(doctor);
         appointment.setBookedBY(user);
         appointment.setSlot(slot);
+        appointment.setStartTime(slot.getStartTime());
         appointment.setDescription(request.getDescription());
         appointment.setAppointmentStatus(AppointmentStatus.BOOKED);
 

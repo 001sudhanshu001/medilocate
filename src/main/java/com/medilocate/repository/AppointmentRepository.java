@@ -20,6 +20,7 @@ import java.util.Optional;
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 //    List<Appointment> findByDoctorAndStartTime(Doctor doctor, LocalDateTime startTime);
 
+    @Deprecated
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM Appointment a WHERE a.doctor = :doctor AND a.slot.startTime BETWEEN :startTime AND :endTime")
     List<Appointment> findByDoctorAndStartTimeBetweenForUpdate(@Param("doctor") Doctor doctor,

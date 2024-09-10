@@ -23,6 +23,12 @@ public class DoctorService {
     private final DoctorRepository doctorRepository;
 
     @Transactional
+    public Doctor findByEmail(String doctorEmail) {
+        return doctorRepository.findByEmail(doctorEmail)
+                .orElseThrow(() -> new EntityNotFoundException("Doctor not Found"));
+    }
+
+    @Transactional
     public Doctor findDoctorById(Long id, Double userLatitude, Double userLongitude) {
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No Doctor Found with the given Id"));
