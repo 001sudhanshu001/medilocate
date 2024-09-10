@@ -1,6 +1,7 @@
 package com.medilocate.service;
 
 import com.github.f4b6a3.ulid.Ulid;
+import com.medilocate.constants.JwtTokenProperty;
 import com.medilocate.entity.User;
 import com.medilocate.entity.UserSession;
 import com.medilocate.entity.enums.Role;
@@ -9,14 +10,18 @@ import com.medilocate.repository.UserSessionDetailRepository;
 import com.medilocate.security.UserDetailsImpl;
 import com.medilocate.security.dto.JwtAuthenticationResponse;
 import com.medilocate.security.dto.SignUpRequest;
+import com.medilocate.security.dto.SigninRequest;
 import com.medilocate.security.enums.TokenType;
+import com.medilocate.security.exception.JwtSecurityException;
+import com.medilocate.security.helper.SessionCreationHelper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Transactional(readOnly = true)
@@ -27,6 +32,8 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final UserSessionDetailRepository userSessionDetailRepository;
     private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
+    private final SessionCreationHelper sessionCreationHelper;
 
     @Transactional
     public JwtAuthenticationResponse signup(SignUpRequest signUpRequest, boolean createAdmin) {
@@ -67,5 +74,92 @@ public class AuthenticationService {
         sessionDetail.setLastModifiedDate(date);
 
         userSessionDetailRepository.save(sessionDetail);
+    }
+
+    @Transactional
+    public JwtAuthenticationResponse signin(SigninRequest request) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getUserName(), request.getPassword())
+        );
+
+        User user = userRepository.findByEmail(request.getUserName())
+                .orElseThrow(() -> new JwtSecurityException(
+                        JwtSecurityException.JWTErrorCode.USER_NOT_FOUND,
+                        "Invalid email or password")
+                );
+
+        List<UserSession> logoutSessions = validateAndReturnLogoutSession(user);
+
+        Map<TokenType, String> tokenMappedByType = jwtService.generateBothToken(new UserDetailsImpl(user));
+        saveLoginSession(tokenMappedByType, user);
+
+        return JwtAuthenticationResponse.builder()
+                .accessToken(tokenMappedByType.get(TokenType.ACCESS_TOKEN))
+                .refreshToken(tokenMappedByType.get(TokenType.REFRESH_TOKEN))
+                .loggedOutSessions(logoutSessions)
+                .userName(request.getUserName())
+                .build();
+    }
+
+    private List<UserSession> validateAndReturnLogoutSession(User user) {
+        List<UserSession> sessions = user.getUserSessions();
+        if (sessions.isEmpty()) return List.of();
+
+        int numberOfSessionsInDB = sessions.size();
+
+        // methods calling order matters here
+        removeInActiveSessionFromDB(sessions);
+        throwExceptionIfNewSessionNotAllowed(numberOfSessionsInDB);
+        return removeSessionIfAllowed(numberOfSessionsInDB, sessions);
+    }
+
+    private void removeInActiveSessionFromDB(List<UserSession> sessions) {
+        List<UserSession> inActiveUserSessions = sessions.stream()
+                .filter(UserSession::hasRefreshDateCrossed)
+                .filter(this::isAccessTokenExpired)
+                .toList();
+
+        if (inActiveUserSessions.isEmpty()) {
+            return;
+        }
+
+        userSessionDetailRepository.deleteAll(inActiveUserSessions);
+
+        sessions.removeAll(inActiveUserSessions);
+    }
+
+    private boolean isAccessTokenExpired(UserSession session) {
+        String accessToken = session.getActiveAccessToken();
+        Date tokenExpiryDate = jwtService.getTokenExpiryFromExpiredJWT(accessToken);
+        return tokenExpiryDate.before(new Date());
+    }
+
+    private void throwExceptionIfNewSessionNotAllowed(int numberOfSessionsInDB) {
+        if (!sessionCreationHelper.canCreateNewSession(numberOfSessionsInDB)) {
+            throw new JwtSecurityException(
+                    JwtSecurityException.JWTErrorCode.MAX_SESSION_REACHED,
+                    "Session Not Allowed, You Have To Logout From Other Device First"
+            );
+        }
+    }
+
+    private List<UserSession> removeSessionIfAllowed(
+            int numberOfSessionsInDB, List<UserSession> sessions) {
+        Integer allowedSessionCount = JwtTokenProperty.ALLOWED_SESSION_COUNT;
+        if (sessionCreationHelper.doWeNeedToRemoveOldSession(numberOfSessionsInDB)) {
+            sessions.sort(Comparator.comparing(UserSession::getCreatedDate));
+
+            int sessionListSizeShouldBeForCreatingNewOne = allowedSessionCount - 1;
+
+            List<UserSession> deletableSessions = new ArrayList<>();
+            while (!sessions.isEmpty() && sessions.size() != sessionListSizeShouldBeForCreatingNewOne) {
+                deletableSessions.add(sessions.remove(0));
+            }
+
+            userSessionDetailRepository.deleteAllInBatch(deletableSessions);
+            return deletableSessions;
+        }
+
+        return List.of();
     }
 }

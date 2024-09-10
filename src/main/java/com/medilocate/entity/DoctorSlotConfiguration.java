@@ -22,5 +22,5 @@ public class DoctorSlotConfiguration {
     private LocalTime startTime;
     private LocalTime endTime;
 
-    private int slotDurationInMinutes; // Optional
+    private Integer slotDurationInMinutes; // Optional
 }

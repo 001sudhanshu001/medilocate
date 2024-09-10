@@ -21,6 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class SlotSchedulerService {
+
     private final DoctorRepository doctorRepository;
     private DoctorSlotConfigurationRepository configRepository;
     private final SlotRepository slotRepository;
@@ -30,6 +31,7 @@ public class SlotSchedulerService {
         List<Doctor> doctors = doctorRepository.findAll();
         LocalDate nextDay = LocalDate.now().plusDays(1);
 
+        // TODO : Handle the situation, where the Doctor has already defined the slot, which can Overlapping
         for (Doctor doctor : doctors) {
             List<DoctorSlotConfiguration> configs = configRepository.findByDoctor(doctor);
             for (DoctorSlotConfiguration config : configs) {
