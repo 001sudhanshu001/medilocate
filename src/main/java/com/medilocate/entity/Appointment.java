@@ -35,6 +35,11 @@ public class Appointment {
     @JoinColumn(name = "booked_by_user_having_id", nullable = false)
     private User bookedBY;
 
+    @Column(length = 50)
+    private String patientName;
+
+    private Integer patientAge;
+
     @Future(message = "Appointment time must be in the future")
     @Column(nullable = false) // This is for de-normalization of data, this will have same time as the Slot
     private LocalDateTime startTime; // startTime, This is Done to save the JOIN b/w Appointment and Slot
