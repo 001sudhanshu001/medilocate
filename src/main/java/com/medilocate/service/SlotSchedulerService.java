@@ -19,11 +19,10 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class SlotSchedulerService {
-
     private final DoctorRepository doctorRepository;
-    private DoctorSlotConfigurationRepository configRepository;
+    private final DoctorSlotConfigurationRepository configRepository;
     private final SlotRepository slotRepository;
 
     @Scheduled(cron = "0 0 22 ? * SUN-THU")
@@ -33,11 +32,13 @@ public class SlotSchedulerService {
 
         // TODO : Handle the situation, where the Doctor has already defined the slot, which can Overlapping
         for (Doctor doctor : doctors) {
+
             List<DoctorSlotConfiguration> configs = configRepository.findByDoctor(doctor);
             for (DoctorSlotConfiguration config : configs) {
                 generateSlotsForDoctor(doctor, nextDay, config);
             }
         }
+
     }
 
     @Transactional

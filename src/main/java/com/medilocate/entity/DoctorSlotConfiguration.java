@@ -22,5 +22,7 @@ public class DoctorSlotConfiguration {
     private LocalTime startTime;
     private LocalTime endTime;
 
+    // TODO: Will delete it After Testing
+    @Column(nullable = true) // This field will be added in Doctor Entity
     private Integer slotDurationInMinutes; // Optional
 }
