@@ -25,3 +25,89 @@
 - **Conflict Prevention:** Ensure no overlapping appointments at a same Slot.
 - **Reminder Notifications:** Receive timely reminders with driving directions to the clinic.
 - **Automated Slot Scheduling:** Doctors can define a slot configuration once, and the system will automatically create their schedules based on this configuration. This feature simplifies the scheduling process for doctors and ensures that their availability is managed efficiently.
+
+## API Documentation
+
+### Doctor Controller
+
+- **GET** `/api/doctors/{id}`
+   - Retrieve details of a specific doctor by ID.
+
+- **PUT** `/api/doctors/{id}`
+   - Update details of a specific doctor by ID.
+
+- **POST** `/api/doctors`
+   - Create a new doctor entry.
+
+- **GET** `/api/doctors/search?name=Sandeep`
+   - Search for doctors based on name (Used for Type Ahead Search).
+
+- **GET** `/api/doctors/search-closest`
+   - Find doctors closest to the user's current location.
+
+- **GET** `/api/doctors/search-by-city-and-specialty`
+   - Search for doctors based on city and specialty.
+
+- **GET** `/api/doctors/profile`
+   - Retrieve the profile information of the currently authenticated doctor.
+
+- **GET** `/api/doctors/all`
+   - Retrieve a list of all doctors.
+
+### Slot Controller
+
+- **POST** `/api/slots/update/{id}`
+   - Update an existing slot by ID, only about Authorized Doctor.
+
+- **POST** `/api/slots/create`
+   - Create a new time slot for a doctor.
+
+- **GET** `/api/slots/doctor/{doctorId}`
+   - Retrieve all slots associated with a specific doctor.
+
+- **DELETE** `/api/slots/{slotId}`
+   - Delete a specific slot by ID.
+
+### Doctor Slot Configuration Controller
+
+- **POST** `/api/slot-configuration/set`
+   - Set up slot configuration for doctors.
+
+- **GET** `/api/slot-configuration`
+   - Retrieve the current slot configuration settings.
+
+### Authentication Controller
+
+- **POST** `/api/auth/signup`
+   - Register a new user.
+
+- **POST** `/api/auth/signin`
+   - Authenticate and sign in a user.
+
+- **POST** `/api/auth/logout`
+   - Log out the currently authenticated user.
+
+- **POST** `/api/auth/create-admin`
+   - Create a new admin user.
+
+### Appointment Controller
+
+- **POST** `/api/appointments/complete`
+   - Mark an appointment as completed.
+
+- **POST** `/api/appointments/book`
+   - Book a new appointment. Handles Double Book Problem.
+
+- **GET** `/api/appointments/user`
+   - Retrieve all appointments for the currently authenticated user.
+
+- **GET** `/api/appointments/doctor`
+   - Retrieve all appointments for the currently authenticated doctor.
+
+- **DELETE** `/api/appointments/cancel`
+   - Cancel a specific appointment by ID, only by Authorized User
+
+### Specialization Controller
+
+- **GET** `/api/specializations`
+   - Retrieve a list of all available specializations.
