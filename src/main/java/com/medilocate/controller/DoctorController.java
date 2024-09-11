@@ -1,6 +1,6 @@
 package com.medilocate.controller;
 
-import com.medilocate.dto.request.DoctorDTO;
+import com.medilocate.dto.request.CreateDoctorRequest;
 import com.medilocate.dto.response.DoctorResponseDTO;
 import com.medilocate.dto.response.DoctorSearchResponse;
 import com.medilocate.entity.Doctor;
@@ -28,9 +28,9 @@ public class DoctorController {
 
     // ADMIN ONLY
     @PostMapping
-    public ResponseEntity<Doctor> createDoctor(@RequestBody DoctorDTO doctorDTO) {
+    public ResponseEntity<Doctor> createDoctor(@RequestBody CreateDoctorRequest createDoctorRequest) {
         // TODO : Use DTO
-        Doctor savedDoctor = doctorService.saveDoctor(doctorDTO);
+        Doctor savedDoctor = doctorService.saveDoctor(createDoctorRequest);
         return new ResponseEntity<>(savedDoctor, HttpStatus.CREATED);
     }
 
@@ -38,8 +38,8 @@ public class DoctorController {
     @PutMapping("/{id}")
     public ResponseEntity<Doctor> updateDoctor(
             @PathVariable Long id,
-            @RequestBody DoctorDTO doctorDTO) {
-        Doctor savedDoctor = doctorService.updateDoctor(id, doctorDTO);
+            @RequestBody CreateDoctorRequest createDoctorRequest) {
+        Doctor savedDoctor = doctorService.updateDoctor(id, createDoctorRequest);
         return ResponseEntity.ok(savedDoctor);
     }
 
@@ -146,11 +146,5 @@ public class DoctorController {
      */
     // TODO : search doctor by Availability
 
-//    @PutMapping("/{id}")
-//    public ResponseEntity<Doctor> updateDoctor(
-//            @PathVariable Long id,
-//            @RequestBody Doctor updatedDoctor) {
-//        Doctor savedDoctor = doctorService.updateDoctor(id, updatedDoctor);
-//        return ResponseEntity.ok(savedDoctor);
-//    }
+
 }

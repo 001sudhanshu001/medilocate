@@ -1,6 +1,7 @@
 package com.medilocate.controller;
 
 import com.medilocate.security.dto.JwtAuthenticationResponse;
+import com.medilocate.security.dto.LogOutRequest;
 import com.medilocate.security.dto.SignUpRequest;
 import com.medilocate.security.dto.SigninRequest;
 import com.medilocate.service.AuthenticationService;
@@ -44,5 +45,12 @@ public class AuthenticationController {
         JwtAuthenticationResponse jwtAuthenticationResponse = authenticationService.signin(request);
 
         return ResponseEntity.ok(jwtAuthenticationResponse);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(@Valid @RequestBody LogOutRequest logOutRequest) {
+        String userName = authenticationService.logout(logOutRequest);
+
+        return ResponseEntity.ok("User has successfully logged out from the system!");
     }
 }

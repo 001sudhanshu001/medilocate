@@ -14,7 +14,7 @@ public class SignUpRequest {
     @Size(max = 50, message = "Name cannot exceed 50 characters")
     private String name;
 
-    @NotBlank(message = "Name is mandatory")
+    @NotBlank(message = "Email is mandatory")
     @Email
     @Size(max = 50, message = "Email cannot exceed 50 characters")
     private String email;

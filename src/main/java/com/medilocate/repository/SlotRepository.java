@@ -41,4 +41,5 @@ public interface SlotRepository extends JpaRepository<Slot, Long> {
     @Query("SELECT s FROM Slot s WHERE s.doctor.id = ?1 " +
             "AND FUNCTION('DATE', s.startTime) = ?2") //AND s.isDeleted = false
     List<Slot> findByDoctorIdAndSlotDate(Long doctorId, LocalDate date);
+
 }

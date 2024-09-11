@@ -9,12 +9,14 @@ import com.medilocate.repository.UserRepository;
 import com.medilocate.repository.UserSessionDetailRepository;
 import com.medilocate.security.UserDetailsImpl;
 import com.medilocate.security.dto.JwtAuthenticationResponse;
+import com.medilocate.security.dto.LogOutRequest;
 import com.medilocate.security.dto.SignUpRequest;
 import com.medilocate.security.dto.SigninRequest;
 import com.medilocate.security.enums.TokenType;
 import com.medilocate.security.exception.JwtSecurityException;
 import com.medilocate.security.helper.SessionCreationHelper;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -161,5 +163,50 @@ public class AuthenticationService {
         }
 
         return List.of();
+    }
+
+    @Transactional
+    public String logout(LogOutRequest logOutRequest) {
+        String accessToken = logOutRequest.getAccessToken();
+        String refreshToken = logOutRequest.getRefreshToken();
+
+        String userName = jwtService.getUserNameFromJWT(accessToken);
+
+        User user = userRepository.findByEmail(userName).orElseThrow(() ->
+                new JwtSecurityException(
+                        JwtSecurityException.JWTErrorCode.USER_NOT_FOUND,
+                        "User Not Found With UserName:: "
+                )
+        );
+
+        List<UserSession> sessions = user.getUserSessions();
+
+        Optional<UserSession> optionalUserSessionDetail = findInOldSessions(sessions, accessToken, refreshToken);
+
+        if (optionalUserSessionDetail.isEmpty()) {
+            throw new JwtSecurityException(
+                    JwtSecurityException.JWTErrorCode.SESSION_NOT_FOUND,
+                    "User Session Not Found"
+            );
+        }
+
+        UserSession session = optionalUserSessionDetail.get();
+
+        userSessionDetailRepository.delete(session);
+
+        return userName;
+    }
+
+    private Optional<UserSession> findInOldSessions(List<UserSession> oldSessions,
+                                                    String accessToken, String refreshToken) {
+
+        return oldSessions.stream()
+                .filter(userSessionDetail -> {
+                    String activeAccessToken = userSessionDetail.getActiveAccessToken();
+                    String activeRefreshToken = userSessionDetail.getActiveRefreshToken();
+
+                    return StringUtils.equals(accessToken, activeAccessToken) &&
+                            StringUtils.equals(refreshToken, activeRefreshToken);
+                }).findFirst();
     }
 }

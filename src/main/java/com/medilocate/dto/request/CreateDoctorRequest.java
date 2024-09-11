@@ -14,7 +14,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DoctorDTO {
+public class CreateDoctorRequest {
 
     @NotBlank(message = "Name can't be Blank")
     @Max(value = 50, message = "Name Must be between 1 to 50 Characters")
@@ -44,4 +44,16 @@ public class DoctorDTO {
 
     @Enumerated(EnumType.STRING)
     private DoctorStatus status;
+
+    @NotBlank(message = "Email is mandatory")
+    @Email
+    @Size(max = 50, message = "Email cannot exceed 50 characters")
+    private String email;
+
+    @Size(max = 15, message = "Phone cannot exceed 15 characters")
+    private String phone;
+
+    @NotBlank(message = "Password is mandatory")
+    @Size(min = 6, message = "Password must be at least 6 characters long")
+    private String password;
 }

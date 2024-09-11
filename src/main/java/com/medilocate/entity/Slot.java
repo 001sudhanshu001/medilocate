@@ -33,8 +33,6 @@ public class Slot {
     @Enumerated(EnumType.STRING)
     private SlotStatus status;
 
-    // TODO : Use DTO
-    @JsonIgnore
     boolean isDeleted;
 
 }

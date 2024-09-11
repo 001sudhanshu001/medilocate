@@ -1,22 +1,27 @@
 package com.medilocate.service;
 
-import com.medilocate.dto.request.DoctorDTO;
+import com.medilocate.dto.request.CreateDoctorRequest;
 import com.medilocate.dto.response.DoctorResponseDTO;
 import com.medilocate.dto.response.DoctorSearchResponse;
 import com.medilocate.entity.Doctor;
+import com.medilocate.entity.User;
+import com.medilocate.entity.enums.Role;
 import com.medilocate.entity.enums.Specialty;
 import com.medilocate.exception.custom.EntityNotFoundException;
 import com.medilocate.repository.DoctorRepository;
+import com.medilocate.repository.UserRepository;
 import com.medilocate.util.DistanceUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -24,6 +29,8 @@ import java.util.List;
 public class DoctorService {
 
     private final DoctorRepository doctorRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public Doctor findByEmail(String doctorEmail) {
@@ -48,25 +55,38 @@ public class DoctorService {
     }
 
     @Transactional
-    public Doctor saveDoctor(DoctorDTO doctorDTO) {
+    public Doctor saveDoctor(CreateDoctorRequest createDoctorRequest) {
         Doctor doctor = new Doctor();
-        doctor.setName(doctorDTO.getName());
-        doctor.setHospital(doctorDTO.getHospital());
-        doctor.setCity(doctorDTO.getCity());
-        doctor.setSpecialty(doctorDTO.getSpecialty());
-        doctor.setLatitude(doctorDTO.getLatitude());
-        doctor.setLongitude(doctorDTO.getLongitude());
-        doctor.setStatus(doctorDTO.getStatus());
-        doctor.setAvailability(doctorDTO.getAvailability());
+        doctor.setName(createDoctorRequest.getName());
+        doctor.setHospital(createDoctorRequest.getHospital());
+        doctor.setCity(createDoctorRequest.getCity());
+        doctor.setSpecialty(createDoctorRequest.getSpecialty());
+        doctor.setLatitude(createDoctorRequest.getLatitude());
+        doctor.setLongitude(createDoctorRequest.getLongitude());
+        doctor.setStatus(createDoctorRequest.getStatus());
+        doctor.setAvailability(createDoctorRequest.getAvailability());
+        doctor.setPhone(createDoctorRequest.getPhone());
 
+        // Create a Corresponding user for the Doctor
+        User appUser = User.builder()
+                .name(createDoctorRequest.getName())
+                .email(createDoctorRequest.getEmail())
+                .password(passwordEncoder.encode(createDoctorRequest.getPassword()))
+                .phone(createDoctorRequest.getPhone())
+                .role(Role.DOCTOR)
+                .build();
+
+        userRepository.save(appUser);
+        
         return doctorRepository.save(doctor);
     }
 
     @Transactional
-    public Doctor updateDoctor(Long id, DoctorDTO updatedDoctor) {
+    public Doctor updateDoctor(Long id, CreateDoctorRequest updatedDoctor) {
         Doctor existingDoctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("No Doctor Found with the given Id"));
 
+        // Do not update email
         existingDoctor.setName(updatedDoctor.getName());
         existingDoctor.setHospital(updatedDoctor.getHospital());
         existingDoctor.setSpecialty(updatedDoctor.getSpecialty());

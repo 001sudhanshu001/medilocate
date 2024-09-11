@@ -7,6 +7,7 @@ import com.medilocate.entity.enums.Specialty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -60,7 +61,6 @@ public class Doctor {
     @Enumerated(EnumType.STRING)
     private DoctorStatus status;
 
-    @JsonIgnore
     @OneToMany(mappedBy = "doctor")
     private List<Appointment> appointments = new ArrayList<>();
 
@@ -72,6 +72,9 @@ public class Doctor {
     @Email
     @Column(unique = true)
     private String email;
+
+    @Column(length = 15)
+    private String phone;
 
     @CreatedDate
     private LocalDateTime createdAt;
