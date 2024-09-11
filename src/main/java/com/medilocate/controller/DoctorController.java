@@ -1,5 +1,6 @@
 package com.medilocate.controller;
 
+import com.medilocate.constants.AppConstants;
 import com.medilocate.dto.request.CreateDoctorRequest;
 import com.medilocate.dto.response.DoctorResponseDTO;
 import com.medilocate.dto.response.DoctorSearchResponse;
@@ -13,11 +14,13 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -30,16 +33,16 @@ public class DoctorController {
     private final AuthenticationService authenticationService;
 
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
+//    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
     public ResponseEntity<Doctor> createDoctor(@RequestBody CreateDoctorRequest createDoctorRequest) {
+        System.out.println("CALLED");
         String adminEmail = authenticationService.getAuthenticatedUserName();
         Doctor savedDoctor = doctorService.saveDoctor(createDoctorRequest, adminEmail);
         return new ResponseEntity<>(savedDoctor, HttpStatus.CREATED);
     }
 
-
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
+//    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
     public ResponseEntity<Doctor> updateDoctor(
             @PathVariable Long id,
             @RequestBody CreateDoctorRequest createDoctorRequest) {
@@ -48,8 +51,25 @@ public class DoctorController {
         return ResponseEntity.ok(savedDoctor);
     }
 
+    @GetMapping("/all") // TODO : Remove this after testing
+//    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
+    public DoctorSearchResponse getAll(
+            @RequestParam(defaultValue = "1", required = false)
+            @Min(value = 1, message = "Page must be greater than or equal to 1") Integer page){
+
+        System.out.println("ALL DOCTORS");
+        Page<Doctor> doctorPage = doctorService.findAll(page, 5);
+
+        List<Doctor> doctorList = new ArrayList<>(doctorPage.getContent());
+        List<DoctorResponseDTO> responseDTOS = doctorList.stream()
+                .map(this::convertToDoctorResponseDTO)
+                .toList();
+
+        return new DoctorSearchResponse(responseDTOS, doctorPage.getTotalPages());
+    }
+
     @GetMapping("/profile")
-    @PreAuthorize("hasAnyAuthority('DOCTOR')")
+//    @PreAuthorize("hasAnyAuthority('DOCTOR')")
     public ResponseEntity<?> getProfile() {
         String doctorEmail = authenticationService.getAuthenticatedUserName();
         return ResponseEntity.ok(convertToDoctorResponseDTO(doctorService.findByEmail(doctorEmail)));
@@ -65,7 +85,7 @@ public class DoctorController {
     }
 
     @GetMapping("/search") // This is Used for Search Bar
-    public ResponseEntity<?> searchDoctorsByName(
+    public DoctorSearchResponse searchDoctorsByName(
             @RequestParam @NotBlank(message = "Name cannot be blank") String name,
             @RequestParam(required = false) Double userLatitude,
             @RequestParam(required = false) Double userLongitude,
@@ -73,13 +93,13 @@ public class DoctorController {
             @RequestParam(defaultValue = "10", required = false) @Min(value = 5, message = "Size must be at least 5")
             @Max(value = 15, message = "Size must be at most 15") int size) {
 
-        DoctorSearchResponse response = doctorService.searchDoctorsByName(name, page, size, userLatitude, userLongitude);
-        return ResponseEntity.ok(response);
+        DoctorSearchResponse response = doctorService.searchDoctorsByName(name, page, 5, userLatitude, userLongitude);
+        return response;
     }
 
 
     @GetMapping("/search-closest")
-    public ResponseEntity<DoctorSearchResponse> searchDoctors(
+    public DoctorSearchResponse searchDoctors(
             @RequestParam Double userLatitude,
             @RequestParam Double userLongitude,
             @RequestParam Specialty specialty,
@@ -88,13 +108,14 @@ public class DoctorController {
             @RequestParam(defaultValue = "10") @Min(value = 5, message = "Size must be at least 5")
             @Max(value = 15, message = "Size must be at most 15") int size) {
 
+
         DoctorSearchResponse closestDoctors = doctorService.findClosestDoctors(userLatitude, userLongitude, specialty, radius, page, size);
 
-        return ResponseEntity.ok(closestDoctors);
+        return closestDoctors;
     }
 
     @GetMapping("/search-by-city-and-specialty")
-    public ResponseEntity<DoctorSearchResponse> searchDoctorsByCityAndSpeciality(
+    public DoctorSearchResponse searchDoctorsByCityAndSpeciality(
             @RequestParam @NotBlank(message = "City cannot be blank") String city,
             @RequestParam @NotNull(message = "Specialty is required") Specialty specialty,
             @RequestParam(required = false) Double userLatitude,
@@ -106,10 +127,11 @@ public class DoctorController {
         DoctorSearchResponse searchResponse = doctorService
                 .findByCityAndSpeciality(city, specialty, page, size, userLatitude, userLongitude);
 
-        if(searchResponse.getDoctors().isEmpty()) {
-            return new ResponseEntity<>(searchResponse, HttpStatus.NO_CONTENT);
-        }
-        return ResponseEntity.ok(searchResponse);
+//        if(searchResponse.getDoctors().isEmpty()) {
+//            return new ResponseEntity<>(searchResponse, HttpStatus.NO_CONTENT);
+//        }
+//        return ResponseEntity.ok(searchResponse);
+        return searchResponse;
 
     }
 

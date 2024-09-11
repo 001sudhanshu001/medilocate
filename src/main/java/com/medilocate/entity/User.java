@@ -43,4 +43,8 @@ public class User {
 
     @CreatedDate
     private LocalDateTime createdAt;
+
+    private String otp;
+    private Boolean isVerified;
+    private boolean isEnabled = true; // TODO : handle with OTP verification
 }

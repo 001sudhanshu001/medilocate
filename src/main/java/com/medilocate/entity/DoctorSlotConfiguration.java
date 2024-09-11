@@ -1,13 +1,17 @@
 package com.medilocate.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalTime;
 
 @Entity
 @Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class DoctorSlotConfiguration {
     // This will be Slots that a Doctor have for daily schedule
     // Many DoctorSlotConfiguration will be related to one Doctor

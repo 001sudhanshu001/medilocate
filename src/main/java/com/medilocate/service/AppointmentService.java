@@ -97,7 +97,7 @@ public class AppointmentService {
 
     @Transactional
     public AppointmentResponse getAppointmentsByDoctor(String doctorEmail, LocalDate appointmentDate, int page) {
-        Pageable pageable = PageRequest.of(page - 1, 10);
+        Pageable pageable = PageRequest.of(page - 1, 10); // TODO
 
         Doctor doctor = doctorRepository.findByEmail(doctorEmail)
                 .orElseThrow(() -> new EntityNotFoundException("Doctor Not Found !!!"));
@@ -106,6 +106,7 @@ public class AppointmentService {
                 appointmentRepository.findByDoctorAndDate(doctor, appointmentDate, pageable);
 
         List<Appointment> appointments = new ArrayList<>(doctorAppointmentPage.getContent());
+
         if(appointments.isEmpty()) {
             return new AppointmentResponse(new ArrayList<>(), doctorAppointmentPage.getTotalPages());
         }

@@ -27,34 +27,35 @@ public class AppointmentController {
     @PostMapping("/book")
     public ResponseEntity<String> bookAppointment(@RequestBody @Valid
                                                       AppointmentRequest appointmentRequest) {
-        String userEmail = authenticationService.getAuthenticatedUserName();
+//        String userEmail = authenticationService.getAuthenticatedUserName();
+        System.out.println("booking appointment " + appointmentRequest);
+        String userEmail = "user@gmail.com";
         appointmentService.bookAppointment(appointmentRequest, userEmail);
         return ResponseEntity.ok("Appointment booked successfully.");
     }
 
     @GetMapping("/user")
-    public ResponseEntity<AppointmentResponse> getUserAppointments(@RequestParam(defaultValue = "1", required = false)
+    public AppointmentResponse getUserAppointments(@RequestParam(defaultValue = "1", required = false)
             @Min(value = 1, message = "Page must be greater than or equal to 1") int page) {
 
-        String username = authenticationService.getAuthenticatedUserName();
-
+        // TODO : // REMOVE THIS
+//        String username = authenticationService.getAuthenticatedUserName();
+        String username = "user@gmail.com";
         AppointmentResponse response = appointmentService.getAppointmentsByUser(username, page);
-        if(response.getAppointmentList().isEmpty()) {
-            return new ResponseEntity<>(response, HttpStatus.NO_CONTENT);
-        }
 
-        return ResponseEntity.ok(response);
+        return response;
     }
 
     @GetMapping("/doctor")
-    @PreAuthorize("hasAuthority('DOCTOR')")
-    public ResponseEntity<AppointmentResponse> getDoctorAppointments(
+//    @PreAuthorize("hasAuthority('DOCTOR')")
+    public AppointmentResponse getDoctorAppointments(
             @RequestParam(required = false) String date, // YYYY-MM-DD
             @RequestParam(defaultValue = "1", required = false)
             @Min(value = 1, message = "Page must be greater than or equal to 1") int page) {
 
-        String doctorEmail = authenticationService.getAuthenticatedUserName();
-
+//        TODO ::
+//        String doctorEmail = authenticationService.getAuthenticatedUserName();
+        String doctorEmail = "sarya@gmail.com";
         AppointmentResponse appointmentResponse;
         if(date == null) {
             appointmentResponse = appointmentService.getAppointmentsByDoctor(doctorEmail, LocalDate.now(), page);
@@ -64,10 +65,10 @@ public class AppointmentController {
             appointmentResponse = appointmentService.getAppointmentsByDoctor(doctorEmail, localDate, page);
         }
         if (appointmentResponse.getAppointmentList().isEmpty()) {
-            return new ResponseEntity<>(appointmentResponse, HttpStatus.NO_CONTENT);
+            return appointmentResponse;
         }
 
-        return ResponseEntity.ok(appointmentResponse);
+        return appointmentResponse;
     }
 
     @DeleteMapping("/cancel")

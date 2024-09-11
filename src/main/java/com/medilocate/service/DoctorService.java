@@ -5,6 +5,7 @@ import com.medilocate.dto.response.DoctorResponseDTO;
 import com.medilocate.dto.response.DoctorSearchResponse;
 import com.medilocate.entity.Doctor;
 import com.medilocate.entity.User;
+import com.medilocate.entity.enums.DoctorStatus;
 import com.medilocate.entity.enums.Role;
 import com.medilocate.entity.enums.Specialty;
 import com.medilocate.exception.custom.EntityNotFoundException;
@@ -39,6 +40,11 @@ public class DoctorService {
     }
 
     @Transactional
+    public Page<Doctor> findAll(int page, int size) {
+        return doctorRepository.findAll(PageRequest.of(page - 1, size));
+    }
+
+    @Transactional
     public Doctor findDoctorById(Long id, Double userLatitude, Double userLongitude) {
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No Doctor Found with the given Id"));
@@ -57,17 +63,21 @@ public class DoctorService {
     @Transactional
     public Doctor saveDoctor(CreateDoctorRequest createDoctorRequest, String createdBy) {
         Doctor doctor = new Doctor();
+        System.out.println("SERVICE");
         doctor.setName(createDoctorRequest.getName());
+        doctor.setEmail(createDoctorRequest.getEmail());
         doctor.setHospital(createDoctorRequest.getHospital());
         doctor.setCity(createDoctorRequest.getCity());
         doctor.setSpecialty(createDoctorRequest.getSpecialty());
         doctor.setLatitude(createDoctorRequest.getLatitude());
         doctor.setLongitude(createDoctorRequest.getLongitude());
-        doctor.setStatus(createDoctorRequest.getStatus());
+        doctor.setStatus(DoctorStatus.AVAILABLE);
         doctor.setAvailability(createDoctorRequest.getAvailability());
         doctor.setPhone(createDoctorRequest.getPhone());
         doctor.setCreatedByAdmin(createdBy);
         doctor.setUpdatedByAdmin(createdBy);
+
+        System.out.println("THE DOCTOR ID " + doctor.getId());
 
         // Create a Corresponding user for the Doctor
         User appUser = User.builder()
@@ -79,8 +89,10 @@ public class DoctorService {
                 .build();
 
         userRepository.save(appUser);
-        
-        return doctorRepository.save(doctor);
+
+        Doctor save = doctorRepository.save(doctor);
+        System.out.println("THE DOCTOR ID IS "  + save.getId());
+        return save;
     }
 
     @Transactional

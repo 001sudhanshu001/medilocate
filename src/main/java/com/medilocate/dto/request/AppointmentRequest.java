@@ -2,14 +2,13 @@ package com.medilocate.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.springframework.transaction.annotation.Transactional;
 
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class AppointmentRequest {
 
     @NotNull(message = "Slot ID cannot be null")

@@ -1,14 +1,15 @@
 package com.medilocate.controller;
 
 import com.medilocate.dto.request.DoctorSlotConfigDTO;
+import com.medilocate.entity.DoctorSlotConfiguration;
 import com.medilocate.service.AuthenticationService;
 import com.medilocate.service.DoctorSlotConfigurationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/slot-configuration")
@@ -25,8 +26,29 @@ public class DoctorSlotConfigurationController {
             return ResponseEntity.badRequest().body("End time must be strictly after start time.");
         }
 
-        String doctorEmail = authenticationService.getAuthenticatedUserName();
+//        String doctorEmail = authenticationService.getAuthenticatedUserName();
+        String doctorEmail = "sarya@gmail.com";
         String response = slotConfigurationService.saveSlotConfiguration(configDTO, doctorEmail);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping()
+    public List<DoctorSlotConfigDTO>  getSlots() {
+
+//        String doctorEmail = authenticationService.getAuthenticatedUserName();
+        String doctorEmail = "sarya@gmail.com";
+        List<DoctorSlotConfiguration> config = slotConfigurationService.getConfig(doctorEmail);
+
+        return config.stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    public DoctorSlotConfigDTO toDTO(DoctorSlotConfiguration entity) {
+        DoctorSlotConfigDTO dto = new DoctorSlotConfigDTO();
+        dto.setStartTime(entity.getStartTime());
+        dto.setEndTime(entity.getEndTime());
+        dto.setSlotDurationInMinutes(entity.getSlotDurationInMinutes());
+        return dto;
     }
 }

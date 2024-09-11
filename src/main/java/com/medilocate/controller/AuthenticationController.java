@@ -28,6 +28,7 @@ public class AuthenticationController {
     public ResponseEntity<?> signup(
             @RequestBody @Valid SignUpRequest request) {
 
+        System.out.println("CREATING USER");
         //TODO : Duplicate Email is handled in Global Exception Handler
         return ResponseEntity.ok(authenticationService.signup(request, false));
     }
@@ -43,30 +44,10 @@ public class AuthenticationController {
     @PostMapping("/signin")
     public ResponseEntity<JwtAuthenticationResponse> signin(
             @RequestBody @Valid SigninRequest request) {
-        JwtAuthenticationResponse jwtAuthenticationResponse = authenticationService.signin(request, Role.PATIENT);
 
-        return ResponseEntity.ok(jwtAuthenticationResponse);
-    }
-
-    @PostMapping("/doctor-signin")
-    public ResponseEntity<JwtAuthenticationResponse> doctorSignin(
-            @RequestBody @Valid SigninRequest request) {
-        JwtAuthenticationResponse jwtAuthenticationResponse = authenticationService.signin(request, Role.DOCTOR);
-
-        return ResponseEntity.ok(jwtAuthenticationResponse);
-    }
-    @PostMapping("/admin-signin")
-    public ResponseEntity<JwtAuthenticationResponse> adminSignin(
-            @RequestBody @Valid SigninRequest request) {
-        JwtAuthenticationResponse jwtAuthenticationResponse = authenticationService.signin(request, Role.ADMIN);
-
-        return ResponseEntity.ok(jwtAuthenticationResponse);
-    }
-
-    @PostMapping("/super-signin")
-    public ResponseEntity<JwtAuthenticationResponse> superAdmin(
-            @RequestBody @Valid SigninRequest request) {
-        JwtAuthenticationResponse jwtAuthenticationResponse = authenticationService.signin(request, Role.SUPER_ADMIN);
+        System.out.println("SIGININ USER");
+        System.out.println("User is " + request.getUserName());
+        JwtAuthenticationResponse jwtAuthenticationResponse = authenticationService.signin(request);
 
         return ResponseEntity.ok(jwtAuthenticationResponse);
     }

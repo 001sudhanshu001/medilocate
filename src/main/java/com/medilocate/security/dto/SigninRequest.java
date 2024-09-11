@@ -1,16 +1,20 @@
 package com.medilocate.security.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class SigninRequest {
 
-    @NotBlank
+    @NotBlank(message = "Username cannot be blank")
     private String userName;
 
-    @NotBlank
+    @NotBlank(message = "Password cannot be blank")
     private String password;
 }

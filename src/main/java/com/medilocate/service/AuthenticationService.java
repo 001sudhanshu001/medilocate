@@ -46,6 +46,7 @@ public class AuthenticationService {
                 .email(signUpRequest.getEmail())
                 .password(passwordEncoder.encode(signUpRequest.getPassword()))
                 .role(createAdmin ? Role.ADMIN : Role.PATIENT)
+                .isEnabled(true) // TODO : Will Implement the email Verification
                 .build();
 
         userRepository.save(appUser);
@@ -81,12 +82,12 @@ public class AuthenticationService {
     }
 
     @Transactional
-    public JwtAuthenticationResponse signin(SigninRequest request, Role role) {
+    public JwtAuthenticationResponse signin(SigninRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUserName(), request.getPassword())
         );
 
-        User user = userRepository.findByEmailAndRole(request.getUserName(), role)
+        User user = userRepository.findByEmail(request.getUserName())
                 .orElseThrow(() -> new JwtSecurityException(
                         JwtSecurityException.JWTErrorCode.USER_NOT_FOUND,
                         "Invalid email or password")

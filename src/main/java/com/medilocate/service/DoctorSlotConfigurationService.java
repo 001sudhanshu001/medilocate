@@ -41,6 +41,14 @@ public class DoctorSlotConfigurationService {
         return "Configuration saved successfully";
     }
 
+    @Transactional
+    public List<DoctorSlotConfiguration> getConfig(String doctorEmail) {
+        Doctor doctor = new Doctor();
+        doctor.setId(1L);
+
+        List<DoctorSlotConfiguration> existingConfigs = configRepository.findByDoctor(doctor);
+        return existingConfigs;
+    }
     private boolean isOverlapping(DoctorSlotConfigDTO newConfig, Doctor doctor) {
         List<DoctorSlotConfiguration> existingConfigs = configRepository.findByDoctor(doctor);
 
