@@ -13,6 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Type;
+import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -78,6 +79,11 @@ public class Doctor {
 
     @CreatedDate
     private LocalDateTime createdAt;
+
+//    @Column(nullable = false)
+    private String CreatedByAdmin;
+
+    private String updatedByAdmin;
 
     @Transient
     private Double distance;

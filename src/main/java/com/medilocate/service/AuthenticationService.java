@@ -19,6 +19,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,12 +81,12 @@ public class AuthenticationService {
     }
 
     @Transactional
-    public JwtAuthenticationResponse signin(SigninRequest request) {
+    public JwtAuthenticationResponse signin(SigninRequest request, Role role) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUserName(), request.getPassword())
         );
 
-        User user = userRepository.findByEmail(request.getUserName())
+        User user = userRepository.findByEmailAndRole(request.getUserName(), role)
                 .orElseThrow(() -> new JwtSecurityException(
                         JwtSecurityException.JWTErrorCode.USER_NOT_FOUND,
                         "Invalid email or password")
@@ -109,7 +111,6 @@ public class AuthenticationService {
 
         int numberOfSessionsInDB = sessions.size();
 
-        // methods calling order matters here
         removeInActiveSessionFromDB(sessions);
         throwExceptionIfNewSessionNotAllowed(numberOfSessionsInDB);
         return removeSessionIfAllowed(numberOfSessionsInDB, sessions);
@@ -208,5 +209,15 @@ public class AuthenticationService {
                     return StringUtils.equals(accessToken, activeAccessToken) &&
                             StringUtils.equals(refreshToken, activeRefreshToken);
                 }).findFirst();
+    }
+
+    public String getAuthenticatedUserName() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = null;
+        if (authentication != null && authentication.isAuthenticated()) {
+            userName = authentication.getName();
+        }
+
+        return userName;
     }
 }

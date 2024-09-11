@@ -1,5 +1,6 @@
 package com.medilocate.controller;
 
+import com.medilocate.entity.enums.Role;
 import com.medilocate.security.dto.JwtAuthenticationResponse;
 import com.medilocate.security.dto.LogOutRequest;
 import com.medilocate.security.dto.SignUpRequest;
@@ -27,7 +28,7 @@ public class AuthenticationController {
     public ResponseEntity<?> signup(
             @RequestBody @Valid SignUpRequest request) {
 
-        // Duplicate Email is handled in Global Exception Handler
+        //TODO : Duplicate Email is handled in Global Exception Handler
         return ResponseEntity.ok(authenticationService.signup(request, false));
     }
 
@@ -42,7 +43,30 @@ public class AuthenticationController {
     @PostMapping("/signin")
     public ResponseEntity<JwtAuthenticationResponse> signin(
             @RequestBody @Valid SigninRequest request) {
-        JwtAuthenticationResponse jwtAuthenticationResponse = authenticationService.signin(request);
+        JwtAuthenticationResponse jwtAuthenticationResponse = authenticationService.signin(request, Role.PATIENT);
+
+        return ResponseEntity.ok(jwtAuthenticationResponse);
+    }
+
+    @PostMapping("/doctor-signin")
+    public ResponseEntity<JwtAuthenticationResponse> doctorSignin(
+            @RequestBody @Valid SigninRequest request) {
+        JwtAuthenticationResponse jwtAuthenticationResponse = authenticationService.signin(request, Role.DOCTOR);
+
+        return ResponseEntity.ok(jwtAuthenticationResponse);
+    }
+    @PostMapping("/admin-signin")
+    public ResponseEntity<JwtAuthenticationResponse> adminSignin(
+            @RequestBody @Valid SigninRequest request) {
+        JwtAuthenticationResponse jwtAuthenticationResponse = authenticationService.signin(request, Role.ADMIN);
+
+        return ResponseEntity.ok(jwtAuthenticationResponse);
+    }
+
+    @PostMapping("/super-signin")
+    public ResponseEntity<JwtAuthenticationResponse> superAdmin(
+            @RequestBody @Valid SigninRequest request) {
+        JwtAuthenticationResponse jwtAuthenticationResponse = authenticationService.signin(request, Role.SUPER_ADMIN);
 
         return ResponseEntity.ok(jwtAuthenticationResponse);
     }

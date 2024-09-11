@@ -5,6 +5,7 @@ import com.medilocate.dto.response.DoctorResponseDTO;
 import com.medilocate.dto.response.DoctorSearchResponse;
 import com.medilocate.entity.Doctor;
 import com.medilocate.entity.enums.Specialty;
+import com.medilocate.service.AuthenticationService;
 import com.medilocate.service.DoctorService;
 import com.medilocate.util.DistanceUtil;
 import jakarta.validation.constraints.Max;
@@ -14,6 +15,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Comparator;
@@ -25,28 +27,31 @@ import java.util.List;
 public class DoctorController {
 
     private final DoctorService doctorService;
+    private final AuthenticationService authenticationService;
 
-    // ADMIN ONLY
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
     public ResponseEntity<Doctor> createDoctor(@RequestBody CreateDoctorRequest createDoctorRequest) {
-        // TODO : Use DTO
-        Doctor savedDoctor = doctorService.saveDoctor(createDoctorRequest);
+        String adminEmail = authenticationService.getAuthenticatedUserName();
+        Doctor savedDoctor = doctorService.saveDoctor(createDoctorRequest, adminEmail);
         return new ResponseEntity<>(savedDoctor, HttpStatus.CREATED);
     }
 
-    // ADMIN ONLY
+
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
     public ResponseEntity<Doctor> updateDoctor(
             @PathVariable Long id,
             @RequestBody CreateDoctorRequest createDoctorRequest) {
-        Doctor savedDoctor = doctorService.updateDoctor(id, createDoctorRequest);
+        String adminEmail = authenticationService.getAuthenticatedUserName();
+        Doctor savedDoctor = doctorService.updateDoctor(id, createDoctorRequest, adminEmail);
         return ResponseEntity.ok(savedDoctor);
     }
 
-    // DOCTOR ONLY
     @GetMapping("/profile")
+    @PreAuthorize("hasAnyAuthority('DOCTOR')")
     public ResponseEntity<?> getProfile() {
-        String doctorEmail = "sarya@gmail.com"; // FROM JWT
+        String doctorEmail = authenticationService.getAuthenticatedUserName();
         return ResponseEntity.ok(convertToDoctorResponseDTO(doctorService.findByEmail(doctorEmail)));
     }
 
@@ -88,7 +93,6 @@ public class DoctorController {
         return ResponseEntity.ok(closestDoctors);
     }
 
-    // TODO : Input Validation and Handling Exception
     @GetMapping("/search-by-city-and-specialty")
     public ResponseEntity<DoctorSearchResponse> searchDoctorsByCityAndSpeciality(
             @RequestParam @NotBlank(message = "City cannot be blank") String city,
@@ -98,7 +102,6 @@ public class DoctorController {
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "Page must be greater than or equal to 1") int page,
             @RequestParam(defaultValue = "10") @Min(value = 5, message = "Size must be at least 5")
             @Max(value = 15, message = "Size must be at most 15") int size) {
-
 
         DoctorSearchResponse searchResponse = doctorService
                 .findByCityAndSpeciality(city, specialty, page, size, userLatitude, userLongitude);

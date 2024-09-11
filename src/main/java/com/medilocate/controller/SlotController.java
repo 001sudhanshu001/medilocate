@@ -3,11 +3,13 @@ package com.medilocate.controller;
 import com.medilocate.dto.request.SlotRequest;
 import com.medilocate.dto.response.SlotResponse;
 import com.medilocate.entity.Slot;
+import com.medilocate.service.AuthenticationService;
 import com.medilocate.service.SlotService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,9 +23,10 @@ import java.util.stream.Collectors;
 public class SlotController {
 
     private final SlotService slotService;
+    private final AuthenticationService authenticationService;
 
-    // DOCTOR ONLY
     @PostMapping("/create")
+    @PreAuthorize("hasAuthority('DOCTOR')")
     public ResponseEntity<?> createSlot(@Valid @RequestBody SlotRequest slotRequest, BindingResult result) {
         if (result.hasErrors()) {
             return ResponseEntity.badRequest().body("Invalid slot data");
@@ -33,14 +36,14 @@ public class SlotController {
             return ResponseEntity.badRequest().body("End time must be after start time");
         }
 
-        String doctorEmail = "sarya@gmail.com"; // FROM JWT
+        String doctorEmail = authenticationService.getAuthenticatedUserName();
         slotService.createSlot(slotRequest, doctorEmail);
 
         return new ResponseEntity<>("Slot Created Successfully", HttpStatus.CREATED);
     }
 
-    // DOCTOR ONLY
     @PostMapping("/update/{id}")
+    @PreAuthorize("hasAuthority('DOCTOR')")
     public ResponseEntity<?> updateSlot(@Valid @RequestBody SlotRequest slotRequest,
                                         BindingResult result, @PathVariable Long id) {
         if (result.hasErrors()) {
@@ -51,7 +54,7 @@ public class SlotController {
             return ResponseEntity.badRequest().body("End time must be after start time");
         }
 
-        String doctorEmail = "sarya@gmail.com"; // FROM JWT
+        String doctorEmail = authenticationService.getAuthenticatedUserName();
         slotService.updateSlot(slotRequest, id, doctorEmail);
 
         return new ResponseEntity<>("Slot Updated Successfully", HttpStatus.OK);
@@ -80,10 +83,10 @@ public class SlotController {
         return ResponseEntity.ok(response);
     }
 
-    // FOR DOCTOR ONLY
     @DeleteMapping("/{slotId}")
+    @PreAuthorize("hasAuthority('DOCTOR')")
     public ResponseEntity<?> deleteSlot(@PathVariable Long slotId) {
-        String doctorEmail = "sarya@gmail.com"; // Will be FROM JWT
+        String doctorEmail = authenticationService.getAuthenticatedUserName();
 
         slotService.deleteSlot(slotId, doctorEmail);
         return ResponseEntity.ok("Slot deleted successfully.");

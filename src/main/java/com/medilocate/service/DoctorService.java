@@ -55,7 +55,7 @@ public class DoctorService {
     }
 
     @Transactional
-    public Doctor saveDoctor(CreateDoctorRequest createDoctorRequest) {
+    public Doctor saveDoctor(CreateDoctorRequest createDoctorRequest, String createdBy) {
         Doctor doctor = new Doctor();
         doctor.setName(createDoctorRequest.getName());
         doctor.setHospital(createDoctorRequest.getHospital());
@@ -66,6 +66,8 @@ public class DoctorService {
         doctor.setStatus(createDoctorRequest.getStatus());
         doctor.setAvailability(createDoctorRequest.getAvailability());
         doctor.setPhone(createDoctorRequest.getPhone());
+        doctor.setCreatedByAdmin(createdBy);
+        doctor.setUpdatedByAdmin(createdBy);
 
         // Create a Corresponding user for the Doctor
         User appUser = User.builder()
@@ -82,7 +84,7 @@ public class DoctorService {
     }
 
     @Transactional
-    public Doctor updateDoctor(Long id, CreateDoctorRequest updatedDoctor) {
+    public Doctor updateDoctor(Long id, CreateDoctorRequest updatedDoctor, String adminEmail) {
         Doctor existingDoctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("No Doctor Found with the given Id"));
 
@@ -94,6 +96,7 @@ public class DoctorService {
         existingDoctor.setLatitude(updatedDoctor.getLatitude());
         existingDoctor.setLongitude(updatedDoctor.getLongitude());
         existingDoctor.setAvailability(updatedDoctor.getAvailability());
+        existingDoctor.setUpdatedByAdmin(adminEmail);
 
         return doctorRepository.save(existingDoctor);
     }
@@ -134,7 +137,7 @@ public class DoctorService {
 
         List<Doctor> doctorList = new ArrayList<>(doctorPage.getContent());
 
-        // TODO : Refactor Code to separate the Distance Calculation Logic
+        // TODO : Refactor code to Move this Logic to Controller Layer
         if (userLatitude != null && userLongitude != null) {
             calculateDistances(doctorList, userLatitude, userLongitude, false);
         }
@@ -155,6 +158,7 @@ public class DoctorService {
 
         List<Doctor> doctorList = new ArrayList<>(doctorPage.getContent());
 
+        // TODO : Refactor code to Move this Logic to Controller Layer
         if(doctorList.isEmpty()) {
             return new DoctorSearchResponse(new ArrayList<DoctorResponseDTO>(), 0);
         }

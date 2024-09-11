@@ -1,6 +1,7 @@
 package com.medilocate.controller;
 
 import com.medilocate.dto.request.DoctorSlotConfigDTO;
+import com.medilocate.service.AuthenticationService;
 import com.medilocate.service.DoctorSlotConfigurationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class DoctorSlotConfigurationController {
 
     private final DoctorSlotConfigurationService slotConfigurationService;
+    private final AuthenticationService authenticationService;
 
     @PostMapping("/set")
     public ResponseEntity<String> setSlotConfiguration(@RequestBody DoctorSlotConfigDTO configDTO) {
@@ -23,9 +25,8 @@ public class DoctorSlotConfigurationController {
             return ResponseEntity.badRequest().body("End time must be strictly after start time.");
         }
 
-
-        String username = "sarya@gmail.com"; // TODO : From JWT
-        String response = slotConfigurationService.saveSlotConfiguration(configDTO, username);
+        String doctorEmail = authenticationService.getAuthenticatedUserName();
+        String response = slotConfigurationService.saveSlotConfiguration(configDTO, doctorEmail);
         return ResponseEntity.ok(response);
     }
 }

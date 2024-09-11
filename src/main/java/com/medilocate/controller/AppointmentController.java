@@ -5,11 +5,13 @@ import com.medilocate.dto.response.AppointmentResponse;
 import com.medilocate.dto.response.BookedAppointmentResponse;
 import com.medilocate.entity.Appointment;
 import com.medilocate.service.AppointmentService;
+import com.medilocate.service.AuthenticationService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -20,12 +22,13 @@ import java.time.LocalDate;
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
+    private final AuthenticationService authenticationService;
 
     @PostMapping("/book")
     public ResponseEntity<String> bookAppointment(@RequestBody @Valid
                                                       AppointmentRequest appointmentRequest) {
-        String username = "user@gmail.com"; // TODO : FROM JWT
-        appointmentService.bookAppointment(appointmentRequest, username);
+        String userEmail = authenticationService.getAuthenticatedUserName();
+        appointmentService.bookAppointment(appointmentRequest, userEmail);
         return ResponseEntity.ok("Appointment booked successfully.");
     }
 
@@ -33,9 +36,9 @@ public class AppointmentController {
     public ResponseEntity<AppointmentResponse> getUserAppointments(@RequestParam(defaultValue = "1", required = false)
             @Min(value = 1, message = "Page must be greater than or equal to 1") int page) {
 
-        String userEmail = "user@gmail.com"; // TODO : From JWT
+        String username = authenticationService.getAuthenticatedUserName();
 
-        AppointmentResponse response = appointmentService.getAppointmentsByUser(userEmail, page);
+        AppointmentResponse response = appointmentService.getAppointmentsByUser(username, page);
         if(response.getAppointmentList().isEmpty()) {
             return new ResponseEntity<>(response, HttpStatus.NO_CONTENT);
         }
@@ -44,12 +47,13 @@ public class AppointmentController {
     }
 
     @GetMapping("/doctor")
+    @PreAuthorize("hasAuthority('DOCTOR')")
     public ResponseEntity<AppointmentResponse> getDoctorAppointments(
             @RequestParam(required = false) String date, // YYYY-MM-DD
             @RequestParam(defaultValue = "1", required = false)
             @Min(value = 1, message = "Page must be greater than or equal to 1") int page) {
 
-        String doctorEmail = "sarya@gmail.com"; // TODO : From JWT
+        String doctorEmail = authenticationService.getAuthenticatedUserName();
 
         AppointmentResponse appointmentResponse;
         if(date == null) {
@@ -69,7 +73,7 @@ public class AppointmentController {
     @DeleteMapping("/cancel")
     public ResponseEntity<String> cancelAppointment(@RequestParam Long appointmentId) {
 
-        String userEmail = "user@gmail.com"; // TODO : From JWT
+        String userEmail = authenticationService.getAuthenticatedUserName();
         try {
             appointmentService.cancelAppointment(appointmentId, userEmail);
             return ResponseEntity.ok("Appointment cancelled successfully");
@@ -78,11 +82,11 @@ public class AppointmentController {
         }
     }
 
-    // DOCTOR ONLY
     @PostMapping("/complete") // Will be Updated by the Doctor
+    @PreAuthorize("hasAuthority('DOCTOR')")
     public ResponseEntity<String> completeAppointment(@RequestParam Long appointmentId) {
 
-        String doctorEmail = "sarya@gmail.com"; // TODO : FROM JWT
+        String doctorEmail = authenticationService.getAuthenticatedUserName();
         try {
             appointmentService.completeAppointment(appointmentId, doctorEmail);
             return ResponseEntity.ok("Appointment marked as completed successfully");
