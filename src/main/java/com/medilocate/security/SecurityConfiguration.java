@@ -33,7 +33,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(configurer -> configurer.authenticationEntryPoint(jwtAuthenticationEntryPoint))
-                .authorizeHttpRequests(
+                .authorizeHttpRequests( // TODO : Enforce Security
                         request -> request.requestMatchers("/api/auth/signup", "/api/auth/signin",
                                         "/api/auth/refresh").permitAll()
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
