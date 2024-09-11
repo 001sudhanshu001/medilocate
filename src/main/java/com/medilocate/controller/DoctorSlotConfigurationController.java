@@ -35,8 +35,7 @@ public class DoctorSlotConfigurationController {
     @GetMapping()
     public List<DoctorSlotConfigDTO>  getSlots() {
 
-//        String doctorEmail = authenticationService.getAuthenticatedUserName();
-        String doctorEmail = "sarya@gmail.com";
+        String doctorEmail = authenticationService.getAuthenticatedUserName();
         List<DoctorSlotConfiguration> config = slotConfigurationService.getConfig(doctorEmail);
 
         return config.stream()

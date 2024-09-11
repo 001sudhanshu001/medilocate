@@ -63,7 +63,6 @@ public class DoctorService {
     @Transactional
     public Doctor saveDoctor(CreateDoctorRequest createDoctorRequest, String createdBy) {
         Doctor doctor = new Doctor();
-        System.out.println("SERVICE");
         doctor.setName(createDoctorRequest.getName());
         doctor.setEmail(createDoctorRequest.getEmail());
         doctor.setHospital(createDoctorRequest.getHospital());
@@ -76,8 +75,6 @@ public class DoctorService {
         doctor.setPhone(createDoctorRequest.getPhone());
         doctor.setCreatedByAdmin(createdBy);
         doctor.setUpdatedByAdmin(createdBy);
-
-        System.out.println("THE DOCTOR ID " + doctor.getId());
 
         // Create a Corresponding user for the Doctor
         User appUser = User.builder()

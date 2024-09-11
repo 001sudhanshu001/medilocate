@@ -42,6 +42,16 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(EmailDuplicateException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseEntity<Map<String, String>> handleEmailDuplicateException(EmailDuplicateException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", "Email already exists");
+        errorResponse.put("message", ex.getMessage());
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(SlotNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleSlotNotFoundException(SlotNotFoundException ex) {
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());

@@ -17,10 +17,6 @@ public class AppointmentRequest {
     @NotNull(message = "Doctor ID cannot be null")
     private Long doctorId;
 
-    // TODO -> Will Switch it with JWT
-   // @NotNull(message = "User ID cannot be null")
-    private Long userId;
-
     @Size(max = 50, message = "Patient name cannot exceed 50 characters")
     private String patientName;
 

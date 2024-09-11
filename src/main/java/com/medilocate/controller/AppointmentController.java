@@ -9,7 +9,6 @@ import com.medilocate.service.AuthenticationService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -27,9 +26,8 @@ public class AppointmentController {
     @PostMapping("/book")
     public ResponseEntity<String> bookAppointment(@RequestBody @Valid
                                                       AppointmentRequest appointmentRequest) {
-//        String userEmail = authenticationService.getAuthenticatedUserName();
-        System.out.println("booking appointment " + appointmentRequest);
-        String userEmail = "user@gmail.com";
+        String userEmail = authenticationService.getAuthenticatedUserName();
+
         appointmentService.bookAppointment(appointmentRequest, userEmail);
         return ResponseEntity.ok("Appointment booked successfully.");
     }
@@ -38,24 +36,19 @@ public class AppointmentController {
     public AppointmentResponse getUserAppointments(@RequestParam(defaultValue = "1", required = false)
             @Min(value = 1, message = "Page must be greater than or equal to 1") int page) {
 
-        // TODO : // REMOVE THIS
-//        String username = authenticationService.getAuthenticatedUserName();
-        String username = "user@gmail.com";
-        AppointmentResponse response = appointmentService.getAppointmentsByUser(username, page);
+        String username = authenticationService.getAuthenticatedUserName();
 
-        return response;
+        return appointmentService.getAppointmentsByUser(username, page);
     }
 
     @GetMapping("/doctor")
-//    @PreAuthorize("hasAuthority('DOCTOR')")
+    @PreAuthorize("hasAuthority('DOCTOR')")
     public AppointmentResponse getDoctorAppointments(
             @RequestParam(required = false) String date, // YYYY-MM-DD
             @RequestParam(defaultValue = "1", required = false)
             @Min(value = 1, message = "Page must be greater than or equal to 1") int page) {
 
-//        TODO ::
-//        String doctorEmail = authenticationService.getAuthenticatedUserName();
-        String doctorEmail = "sarya@gmail.com";
+        String doctorEmail = authenticationService.getAuthenticatedUserName();
         AppointmentResponse appointmentResponse;
         if(date == null) {
             appointmentResponse = appointmentService.getAppointmentsByDoctor(doctorEmail, LocalDate.now(), page);

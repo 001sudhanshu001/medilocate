@@ -1,6 +1,5 @@
 package com.medilocate.controller;
 
-import com.medilocate.entity.enums.Role;
 import com.medilocate.security.dto.JwtAuthenticationResponse;
 import com.medilocate.security.dto.LogOutRequest;
 import com.medilocate.security.dto.SignUpRequest;
@@ -27,8 +26,6 @@ public class AuthenticationController {
     @PostMapping("/signup")
     public ResponseEntity<?> signup(
             @RequestBody @Valid SignUpRequest request) {
-
-        System.out.println("CREATING USER");
         //TODO : Duplicate Email is handled in Global Exception Handler
         return ResponseEntity.ok(authenticationService.signup(request, false));
     }
@@ -37,16 +34,12 @@ public class AuthenticationController {
     @PostMapping("/create-admin")
     public ResponseEntity<?> createAdmin(
             @RequestBody @Valid SignUpRequest request) {
-
         return ResponseEntity.ok(authenticationService.signup(request, true));
     }
 
     @PostMapping("/signin")
     public ResponseEntity<JwtAuthenticationResponse> signin(
             @RequestBody @Valid SigninRequest request) {
-
-        System.out.println("SIGININ USER");
-        System.out.println("User is " + request.getUserName());
         JwtAuthenticationResponse jwtAuthenticationResponse = authenticationService.signin(request);
 
         return ResponseEntity.ok(jwtAuthenticationResponse);

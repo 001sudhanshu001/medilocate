@@ -26,7 +26,7 @@ public class SlotController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("/create")
-//    @PreAuthorize("hasAuthority('DOCTOR')")
+    @PreAuthorize("hasAuthority('DOCTOR')")
     public ResponseEntity<?> createSlot(@Valid @RequestBody SlotRequest slotRequest, BindingResult result) {
         if (result.hasErrors()) {
             return ResponseEntity.badRequest().body("Invalid slot data");
@@ -36,16 +36,14 @@ public class SlotController {
             return ResponseEntity.badRequest().body("End time must be after start time");
         }
 
-        // TODO : Remove after Testing
-//        String doctorEmail = authenticationService.getAuthenticatedUserName();
-        String doctorEmail = "sarya@gmail.com";
+        String doctorEmail = authenticationService.getAuthenticatedUserName();
         slotService.createSlot(slotRequest, doctorEmail);
 
         return new ResponseEntity<>("Slot Created Successfully", HttpStatus.CREATED);
     }
 
     @PostMapping("/update/{id}")
-//    @PreAuthorize("hasAuthority('DOCTOR')")
+    @PreAuthorize("hasAuthority('DOCTOR')")
     public ResponseEntity<?> updateSlot(@Valid @RequestBody SlotRequest slotRequest,
                                         BindingResult result, @PathVariable Long id) {
         if (result.hasErrors()) {
@@ -86,7 +84,7 @@ public class SlotController {
     }
 
     @DeleteMapping("/{slotId}")
-//    @PreAuthorize("hasAuthority('DOCTOR')")
+    @PreAuthorize("hasAuthority('DOCTOR')")
     public ResponseEntity<?> deleteSlot(@PathVariable Long slotId) {
         String doctorEmail = authenticationService.getAuthenticatedUserName();
 

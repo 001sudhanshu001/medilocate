@@ -33,16 +33,15 @@ public class DoctorController {
     private final AuthenticationService authenticationService;
 
     @PostMapping
-//    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
     public ResponseEntity<Doctor> createDoctor(@RequestBody CreateDoctorRequest createDoctorRequest) {
-        System.out.println("CALLED");
         String adminEmail = authenticationService.getAuthenticatedUserName();
         Doctor savedDoctor = doctorService.saveDoctor(createDoctorRequest, adminEmail);
         return new ResponseEntity<>(savedDoctor, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-//    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
     public ResponseEntity<Doctor> updateDoctor(
             @PathVariable Long id,
             @RequestBody CreateDoctorRequest createDoctorRequest) {
@@ -51,13 +50,12 @@ public class DoctorController {
         return ResponseEntity.ok(savedDoctor);
     }
 
-    @GetMapping("/all") // TODO : Remove this after testing
-//    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
+    @GetMapping("/all")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
     public DoctorSearchResponse getAll(
             @RequestParam(defaultValue = "1", required = false)
             @Min(value = 1, message = "Page must be greater than or equal to 1") Integer page){
 
-        System.out.println("ALL DOCTORS");
         Page<Doctor> doctorPage = doctorService.findAll(page, 5);
 
         List<Doctor> doctorList = new ArrayList<>(doctorPage.getContent());
@@ -69,7 +67,7 @@ public class DoctorController {
     }
 
     @GetMapping("/profile")
-//    @PreAuthorize("hasAnyAuthority('DOCTOR')")
+    @PreAuthorize("hasAnyAuthority('DOCTOR')")
     public ResponseEntity<?> getProfile() {
         String doctorEmail = authenticationService.getAuthenticatedUserName();
         return ResponseEntity.ok(convertToDoctorResponseDTO(doctorService.findByEmail(doctorEmail)));

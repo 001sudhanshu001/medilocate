@@ -5,6 +5,7 @@ import com.medilocate.constants.JwtTokenProperty;
 import com.medilocate.entity.User;
 import com.medilocate.entity.UserSession;
 import com.medilocate.entity.enums.Role;
+import com.medilocate.exception.custom.EmailDuplicateException;
 import com.medilocate.repository.UserRepository;
 import com.medilocate.repository.UserSessionDetailRepository;
 import com.medilocate.security.UserDetailsImpl;
@@ -41,6 +42,11 @@ public class AuthenticationService {
 
     @Transactional
     public JwtAuthenticationResponse signup(SignUpRequest signUpRequest, boolean createAdmin) {
+        Optional<User> byEmail = userRepository.findByEmail(signUpRequest.getEmail());
+        if(byEmail.isPresent()) {
+            throw new EmailDuplicateException("This Email is Already taken");
+        }
+
         User appUser = User.builder()
                 .name(signUpRequest.getName())
                 .email(signUpRequest.getEmail())
