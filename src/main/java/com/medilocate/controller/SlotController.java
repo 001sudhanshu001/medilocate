@@ -7,6 +7,7 @@ import com.medilocate.service.AuthenticationService;
 import com.medilocate.service.SlotService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/slots")
 @RequiredArgsConstructor
+@Slf4j
 public class SlotController {
 
     private final SlotService slotService;
@@ -37,13 +39,16 @@ public class SlotController {
         }
 
         String doctorEmail = authenticationService.getAuthenticatedUserName();
+
+        log.info("Create Slot request by {} ", doctorEmail);
+
         slotService.createSlot(slotRequest, doctorEmail);
 
         return new ResponseEntity<>("Slot Created Successfully", HttpStatus.CREATED);
     }
 
     @PostMapping("/update/{id}")
-    @PreAuthorize("hasAuthority('DOCTOR')")
+//    @PreAuthorize("hasAuthority('DOCTOR')")
     public ResponseEntity<?> updateSlot(@Valid @RequestBody SlotRequest slotRequest,
                                         BindingResult result, @PathVariable Long id) {
         if (result.hasErrors()) {
@@ -55,6 +60,9 @@ public class SlotController {
         }
 
         String doctorEmail = authenticationService.getAuthenticatedUserName();
+
+        log.info("update Slot request by {} ", doctorEmail);
+
         slotService.updateSlot(slotRequest, id, doctorEmail);
 
         return new ResponseEntity<>("Slot Updated Successfully", HttpStatus.OK);
@@ -76,6 +84,8 @@ public class SlotController {
             return ResponseEntity.noContent().build();
         }
 
+        log.info("Get slots of doctor with id {} for the booking ", doctorId);
+
         List<SlotResponse> response = slotsByDoctorAndDate.stream()
                 .map(this::convertToSlotResponse)
                 .collect(Collectors.toList());
@@ -84,9 +94,12 @@ public class SlotController {
     }
 
     @DeleteMapping("/{slotId}")
-    @PreAuthorize("hasAuthority('DOCTOR')")
+//    @PreAuthorize("hasAuthority('DOCTOR')")
     public ResponseEntity<?> deleteSlot(@PathVariable Long slotId) {
         String doctorEmail = authenticationService.getAuthenticatedUserName();
+
+        log.info("delete slot request by doctor {} for slotId {} ", doctorEmail, slotId);
+
 
         slotService.deleteSlot(slotId, doctorEmail);
         return ResponseEntity.ok("Slot deleted successfully.");

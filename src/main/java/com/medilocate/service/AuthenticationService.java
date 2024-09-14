@@ -1,7 +1,9 @@
 package com.medilocate.service;
 
 import com.github.f4b6a3.ulid.Ulid;
+import com.github.f4b6a3.ulid.UlidCreator;
 import com.medilocate.constants.JwtTokenProperty;
+import com.medilocate.dto.request.RefreshTokenRequest;
 import com.medilocate.entity.User;
 import com.medilocate.entity.UserSession;
 import com.medilocate.entity.enums.Role;
@@ -28,6 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
+import static com.medilocate.security.exception.JwtSecurityException.JWTErrorCode.REFRESH_TOKEN_ONLY_ALLOWED_WITH_EXPIRED_TOKEN;
+
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -53,6 +57,7 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(signUpRequest.getPassword()))
                 .role(createAdmin ? Role.ADMIN : Role.PATIENT)
                 .isEnabled(true) // TODO : Will Implement the email Verification
+                .isVerified(true)
                 .build();
 
         userRepository.save(appUser);
@@ -227,4 +232,87 @@ public class AuthenticationService {
 
         return userName;
     }
+
+    @Transactional
+    public JwtAuthenticationResponse refresh(RefreshTokenRequest refreshTokenRequest) {
+        String accessToken = refreshTokenRequest.getAccessToken();
+        throwExceptionIfAccessTokenIsNotExpired(accessToken);
+
+        String refreshToken = refreshTokenRequest.getRefreshToken();
+        validateRefreshTokenAsULID(refreshToken);
+
+        String userName = jwtService.getUserNameFromJWT(accessToken);
+        User user = userRepository.findByEmail(userName).orElseThrow(
+                () -> new JwtSecurityException(
+                        JwtSecurityException.JWTErrorCode.USER_NOT_FOUND,
+                        "User Not Found"
+                )
+        );
+
+        List<UserSession> userSessions = user.getUserSessions();
+
+        Optional<UserSession> oldSession = findInOldSessions(
+                userSessions, accessToken, refreshToken
+        );
+
+        if (oldSession.isEmpty()) {
+            throw new JwtSecurityException(
+                    JwtSecurityException.JWTErrorCode.SESSION_NOT_FOUND,
+                    "User Session For Refresh Not Found With Given Tokens"
+            );
+        }
+
+        UserSession sessionToUpdate = oldSession.get();
+        Date refreshTokenExpiryDate = sessionToUpdate.getRefreshTokenExpiryDate();
+
+        if(refreshTokenExpiryDate.before(new Date())) {
+            throw new JwtSecurityException(
+                    JwtSecurityException.JWTErrorCode.REFRESH_TOKEN_EXPIRED,
+                    "Refresh Token Is Expired, Create New Login Request"
+            );
+        }
+
+        String newAccessToken = jwtService.generateAccessToken(new UserDetailsImpl(user));
+        Ulid newRefreshToken = UlidCreator.getUlid(refreshTokenExpiryDate.getTime());
+
+        sessionToUpdate.setActiveAccessToken(newAccessToken);
+        sessionToUpdate.setActiveRefreshToken(newRefreshToken.toString());
+        sessionToUpdate.setLastModifiedDate(new Date());
+        sessionToUpdate.increaseTokenRefreshCount();
+
+        userSessionDetailRepository.save(sessionToUpdate);
+
+        return JwtAuthenticationResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken.toString())
+                .build();
+    }
+
+    private static void validateRefreshTokenAsULID(String refreshToken) {
+        if (!Ulid.isValid(refreshToken)) {
+            throw new JwtSecurityException(
+                    JwtSecurityException.JWTErrorCode.INVALID_REFRESH_TOKEN,
+                    "Invalid Refresh Token Provided"
+            );
+        }
+
+        Date refreshTokenValidity = new Date(Ulid.from(refreshToken).getTime());
+        if (refreshTokenValidity.before(new Date())) {
+            throw new JwtSecurityException(
+                    JwtSecurityException.JWTErrorCode.REFRESH_TOKEN_EXPIRED,
+                    "Refresh Token Is Expired, Create New Login Request"
+            );
+        }
+    }
+
+    private void throwExceptionIfAccessTokenIsNotExpired(String accessToken) {
+        Date accessTokenExpiredAt = jwtService.getTokenExpiryFromExpiredJWT(accessToken);
+        if (accessTokenExpiredAt.after(new Date())) {
+            throw new JwtSecurityException(
+                    REFRESH_TOKEN_ONLY_ALLOWED_WITH_EXPIRED_TOKEN,
+                    "Refreshing The Token Is Only Allowed When Access Token Is Expired"
+            );
+        }
+    }
+
 }

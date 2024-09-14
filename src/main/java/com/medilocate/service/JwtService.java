@@ -3,6 +3,7 @@ package com.medilocate.service;
 import com.github.f4b6a3.ulid.Ulid;
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.medilocate.constants.JwtTokenProperty;
+import com.medilocate.security.UserDetailsImpl;
 import com.medilocate.security.enums.TokenType;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
@@ -150,5 +151,17 @@ public class JwtService {
             log.error("JWT claims string is empty:: {}", e.getMessage());
         }
         return validationResult;
+    }
+
+    public String generateAccessToken(UserDetailsImpl userDetails) {
+        Map<String, Object> extraClaims = new HashMap<>();
+
+        String authorities = userDetails.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
+
+        extraClaims.put(JwtTokenProperty.AUTHORITY_KEY, authorities);
+        return getAccessToken(extraClaims, userDetails, System.currentTimeMillis());
     }
 }

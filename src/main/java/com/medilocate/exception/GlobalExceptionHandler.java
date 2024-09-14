@@ -1,19 +1,27 @@
 package com.medilocate.exception;
 
 import com.medilocate.exception.custom.*;
+import com.medilocate.security.dto.SecurityErrorResponse;
+import com.medilocate.security.exception.JwtSecurityException;
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
 import java.time.format.DateTimeParseException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserNotFoundException.class)
@@ -122,5 +130,43 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleAllOtherExceptions(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("An unexpected error occurred: " + ex.getMessage());
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<SecurityErrorResponse> handleAccessDeniedException(AccessDeniedException accessDeniedException,
+                                                                     WebRequest request) {
+        SecurityErrorResponse errorResponse = new SecurityErrorResponse(
+                new Date(), HttpStatus.FORBIDDEN.value(),
+                accessDeniedException.getMessage(), request.getDescription(false)
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<SecurityErrorResponse> handleBadCredentialsExceptionException(AccessDeniedException exception,
+                                                                                WebRequest request) {
+        SecurityErrorResponse errorResponse = new SecurityErrorResponse(
+                new Date(), HttpStatus.UNAUTHORIZED.value(),
+                exception.getMessage(), request.getDescription(false)
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(JwtSecurityException.class)
+    public ResponseEntity<SecurityErrorResponse> handleJwtSecurityException(JwtSecurityException jwtSecurityException,
+                                                                    WebRequest request) {
+        JwtSecurityException.JWTErrorCode jwtErrorCode = jwtSecurityException.getJwtErrorCode();
+        SecurityErrorResponse errorResponse = new SecurityErrorResponse(
+                new Date(), jwtErrorCode.getErrorCode(),
+                jwtSecurityException.getMessage(), request.getDescription(false)
+        );
+
+        log.error(
+                "JwtSecurityException Happened On Request:: {}",
+                request.getDescription(true), jwtSecurityException
+        );
+        return new ResponseEntity<>(errorResponse, jwtErrorCode.httpStatus());
     }
 }

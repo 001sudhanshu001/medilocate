@@ -6,22 +6,29 @@ import com.medilocate.dto.response.BookedAppointmentResponse;
 import com.medilocate.entity.Appointment;
 import com.medilocate.service.AppointmentService;
 import com.medilocate.service.AuthenticationService;
+import com.medilocate.service.NotificationService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 
+import static com.medilocate.constants.AppointmentBookedMail.APPOINTMENT_BOOKED_MAIL_BODY;
+import static com.medilocate.constants.AppointmentBookedMail.APPOINTMENT_BOOKED_MAIL_SUBJECT;
+
 @RestController
 @RequestMapping("/api/appointments")
 @RequiredArgsConstructor
+@Slf4j
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
     private final AuthenticationService authenticationService;
+    private final NotificationService notificationService;
 
     @PostMapping("/book")
     public ResponseEntity<String> bookAppointment(@RequestBody @Valid
@@ -29,16 +36,20 @@ public class AppointmentController {
         String userEmail = authenticationService.getAuthenticatedUserName();
 
         appointmentService.bookAppointment(appointmentRequest, userEmail);
+
+        // TODO : Enhance Mail body to attach Appointment Information
+        notificationService.sendAppointmentConfirmationEmail(userEmail, APPOINTMENT_BOOKED_MAIL_SUBJECT,
+                APPOINTMENT_BOOKED_MAIL_BODY);
+
         return ResponseEntity.ok("Appointment booked successfully.");
     }
 
     @GetMapping("/user")
     public AppointmentResponse getUserAppointments(@RequestParam(defaultValue = "1", required = false)
             @Min(value = 1, message = "Page must be greater than or equal to 1") int page) {
+        String userEmail = authenticationService.getAuthenticatedUserName();
 
-        String username = authenticationService.getAuthenticatedUserName();
-
-        return appointmentService.getAppointmentsByUser(username, page);
+        return appointmentService.getAppointmentsByUser(userEmail, page);
     }
 
     @GetMapping("/doctor")
@@ -49,6 +60,7 @@ public class AppointmentController {
             @Min(value = 1, message = "Page must be greater than or equal to 1") int page) {
 
         String doctorEmail = authenticationService.getAuthenticatedUserName();
+
         AppointmentResponse appointmentResponse;
         if(date == null) {
             appointmentResponse = appointmentService.getAppointmentsByDoctor(doctorEmail, LocalDate.now(), page);
@@ -81,6 +93,7 @@ public class AppointmentController {
     public ResponseEntity<String> completeAppointment(@RequestParam Long appointmentId) {
 
         String doctorEmail = authenticationService.getAuthenticatedUserName();
+
         try {
             appointmentService.completeAppointment(appointmentId, doctorEmail);
             return ResponseEntity.ok("Appointment marked as completed successfully");

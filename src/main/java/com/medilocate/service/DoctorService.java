@@ -83,6 +83,8 @@ public class DoctorService {
                 .password(passwordEncoder.encode(createDoctorRequest.getPassword()))
                 .phone(createDoctorRequest.getPhone())
                 .role(Role.DOCTOR)
+                .isEnabled(true) // TODO : Will Implement the email Verification
+                .isVerified(true)
                 .build();
 
         userRepository.save(appUser);

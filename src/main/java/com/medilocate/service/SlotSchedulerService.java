@@ -27,11 +27,13 @@ public class SlotSchedulerService {
 
     // TODO :Enhance it using the Availability of Doctor, which can generate Slot for Doctors based on there schedule
     @Scheduled(cron = "0 0 22 ? * SUN-THU")
+//    @Scheduled(fixedDelay = 30000)
     public void generateDoctorSlotsForNextDay() {
         List<Doctor> doctors = doctorRepository.findAll();
         LocalDate nextDay = LocalDate.now().plusDays(1);
 
-        // TODO : Handle the situation, where the Doctor has already defined the slot, which can Overlapping
+        System.out.println("Scheduler running");
+
         for (Doctor doctor : doctors) {
             List<DoctorSlotConfiguration> configs = configRepository.findByDoctor(doctor);
             for (DoctorSlotConfiguration config : configs) {

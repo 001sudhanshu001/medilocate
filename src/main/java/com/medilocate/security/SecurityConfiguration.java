@@ -37,7 +37,13 @@ public class SecurityConfiguration {
                         request -> request.requestMatchers("/api/auth/signup", "/api/auth/signin",
                                         "/api/auth/refresh").permitAll()
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                                .anyRequest().permitAll() // TODO : Just While Testing
+                                .requestMatchers("/api/appointments/book").authenticated()
+                                .requestMatchers("/api/appointments/user").authenticated()
+                                .requestMatchers("/api/appointments/cancel").authenticated()
+                                .requestMatchers("/api/appointments/user").authenticated()
+                                .requestMatchers("/api/slots/create").authenticated()
+                                .anyRequest().permitAll()
+
                 )
                 .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider())

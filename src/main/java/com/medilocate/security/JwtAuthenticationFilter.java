@@ -35,6 +35,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
+        System.out.println("HEADER IS " + authHeader);
+
+        log.info("HEADER IS " + authHeader);
+
         if (StringUtils.isBlank(authHeader) || !authHeader.startsWith(BEARER)) {
             filterChain.doFilter(request, response);
             return;

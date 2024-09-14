@@ -39,6 +39,11 @@ public class NotificationScheduler {
                 sendEmailNotification(appointment);
                 appointmentIds.add(appointment.getId());
             }
+
+            // TODO : Just for demonstration
+            if(appointment.getBookedBY().getEmail().equals("user@gmail.com")) {
+                sendEmailNotification(appointment, "sudhanshuarya305@gmail.com");
+            }
         }
 
         if (!appointmentIds.isEmpty()) {
@@ -77,6 +82,30 @@ public class NotificationScheduler {
             );
         }
         return null;
+    }
+
+    /// TODO : Just for demonstration
+    private void sendEmailNotification(Appointment appointment, String email) {
+        Double doctorLatitude = appointment.getDoctor().getLatitude();
+        Double doctorLongitude = appointment.getDoctor().getLongitude();
+        String locationUrl = createGoogleMapsLocationUrl(doctorLatitude, doctorLongitude);
+
+        String subject = "Upcoming Appointment Reminder";
+        String body = String.format(
+                "Dear %s, \n\nThis is a reminder for your upcoming appointment with Dr. %s on %s.\n\nLocation: %s\n\nView on Google Maps: %s\n\nBest regards,\nMediLocate Team",
+                appointment.getBookedBY().getName(),
+                appointment.getDoctor().getName(),
+                appointment.getStartTime().toString(),
+                "Doctor's Clinic",
+                locationUrl
+        );
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(appointment.getBookedBY().getEmail());
+        message.setSubject(subject);
+        message.setText(body);
+
+        mailSender.send(message);
     }
 
 }

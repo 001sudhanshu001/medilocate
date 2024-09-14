@@ -1,5 +1,6 @@
 package com.medilocate.controller;
 
+import com.medilocate.dto.request.RefreshTokenRequest;
 import com.medilocate.security.dto.JwtAuthenticationResponse;
 import com.medilocate.security.dto.LogOutRequest;
 import com.medilocate.security.dto.SignUpRequest;
@@ -26,7 +27,9 @@ public class AuthenticationController {
     @PostMapping("/signup")
     public ResponseEntity<?> signup(
             @RequestBody @Valid SignUpRequest request) {
-        //TODO : Duplicate Email is handled in Global Exception Handler
+
+        log.info("User Signup for user {} ", request.getEmail() );
+
         return ResponseEntity.ok(authenticationService.signup(request, false));
     }
 
@@ -40,13 +43,23 @@ public class AuthenticationController {
     @PostMapping("/signin")
     public ResponseEntity<JwtAuthenticationResponse> signin(
             @RequestBody @Valid SigninRequest request) {
+
+        log.info("{} User tried to login", request.getUserName());
         JwtAuthenticationResponse jwtAuthenticationResponse = authenticationService.signin(request);
+        log.info(request.getUserName() + " tried to login");
 
         return ResponseEntity.ok(jwtAuthenticationResponse);
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<JwtAuthenticationResponse> refresh(
+            @RequestBody @Valid RefreshTokenRequest refreshTokenRequest) {
+        return ResponseEntity.ok(authenticationService.refresh(refreshTokenRequest));
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<String> logout(@Valid @RequestBody LogOutRequest logOutRequest) {
+        log.info("User logout request to login");
         String userName = authenticationService.logout(logOutRequest);
 
         return ResponseEntity.ok("User has successfully logged out from the system!");
